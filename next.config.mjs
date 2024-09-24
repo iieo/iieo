@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  basePath: '/leo-homepage',
+  // basePath: '/leo-homepage',
   output: 'export',
 };
 

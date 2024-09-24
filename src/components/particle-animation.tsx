@@ -125,9 +125,9 @@ const ParticleAnimation: React.FC = () => {
 
           // Update positions
           const speed = 0.0015;
-          positions[i3] = positions[i3] ?? 0 + Math.sin(time + i * 0.1) * speed;
-          positions[i3 + 1] = positions[i3 + 1] ?? 0 + Math.cos(time + i * 0.1) * speed;
-          positions[i3 + 2] = positions[i3 + 2] ?? 0 + Math.sin(time + i * 0.1) * speed;
+          positions[i3] = (positions[i3] ?? 0) + Math.sin(time + i * 0.1) * speed;
+          positions[i3 + 1] = (positions[i3 + 1] ?? 0) + Math.cos(time + i * 0.1) * speed * speed;
+          positions[i3 + 2] = (positions[i3 + 2] ?? 0) + Math.sin(time + i * 0.1) * speed;
 
           // Check if the particle is too far from its initial position
           const dx = (positions[i3] ?? 0) - (initialPositions[i3] ?? 0);
