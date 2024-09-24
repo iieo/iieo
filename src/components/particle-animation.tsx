@@ -35,7 +35,7 @@ const ParticleAnimation: React.FC = () => {
     // Store initial positions
     const initialPositions = new Float32Array(particlesCount * 3);
     for (let i = 0; i < particlesCount * 3; i++) {
-      initialPositions[i] = posArray[i];
+      initialPositions[i] = posArray[i] ?? 0;
     }
 
     // Create a circle texture for particles
@@ -118,29 +118,29 @@ const ParticleAnimation: React.FC = () => {
       const positionAttribute = particlesGeometry.attributes.position;
 
       if (positionAttribute && positionAttribute.array instanceof Float32Array) {
-        const positions = positionAttribute.array;
+        const positions = positionAttribute.array as Float32Array;
 
         for (let i = 0; i < particlesCount; i++) {
           const i3 = i * 3;
 
           // Update positions
           const speed = 0.0015;
-          positions[i3] += Math.sin(time + i * 0.1) * speed;
-          positions[i3 + 1] += Math.cos(time + i * 0.1) * speed;
-          positions[i3 + 2] += Math.sin(time + i * 0.1) * speed;
+          positions[i3] = positions[i3] ?? 0 + Math.sin(time + i * 0.1) * speed;
+          positions[i3 + 1] = positions[i3 + 1] ?? 0 + Math.cos(time + i * 0.1) * speed;
+          positions[i3 + 2] = positions[i3 + 2] ?? 0 + Math.sin(time + i * 0.1) * speed;
 
           // Check if the particle is too far from its initial position
-          const dx = positions[i3] - initialPositions[i3];
-          const dy = positions[i3 + 1] - initialPositions[i3 + 1];
-          const dz = positions[i3 + 2] - initialPositions[i3 + 2];
+          const dx = (positions[i3] ?? 0) - (initialPositions[i3] ?? 0);
+          const dy = (positions[i3 + 1] ?? 0) - (initialPositions[i3 + 1] ?? 0);
+          const dz = (positions[i3 + 2] ?? 0) - (initialPositions[i3 + 2] ?? 0);
           const distanceSquared = dx * dx + dy * dy + dz * dz;
 
           // If the particle is too far, reset its position
           if (distanceSquared > 8) {
             // 1.5 * 1.5 = 2.25
-            positions[i3] = initialPositions[i3];
-            positions[i3 + 1] = initialPositions[i3 + 1];
-            positions[i3 + 2] = initialPositions[i3 + 2];
+            positions[i3] = initialPositions[i3] ?? 0;
+            positions[i3 + 1] = initialPositions[i3 + 1] ?? 0;
+            positions[i3 + 2] = initialPositions[i3 + 2] ?? 0;
           }
         }
 
