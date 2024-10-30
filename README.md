@@ -2,7 +2,7 @@
 
 - 🔭 Ich arbeite bei [Titanom Technologies GmbH](https://titanom.com/)
 
-- 👨‍💻 Hier kannst du manche meiner Projekte sehen [bauerleopold.de](bauerleopold.de)
+- 👨‍💻 Hier kannst du manche meiner Projekte sehen [bauerleopold.de](https://bauerleopold.de/)
 
 <h3 align="left">Connect with me:</h3>
 <p align="left">
