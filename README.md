@@ -1,4 +1,5 @@
 <h1 align="center">Hi 👋, Ich bin Leopold</h1>
+
 - 🔭 Ich arbeite bei [Titanom Technologies GmbH](https://titanom.com/)
 
 - 👨‍💻 Hier kannst du manche meiner Projekte sehen [bauerleopold.de](bauerleopold.de)
