@@ -136,7 +136,7 @@ const ParticleAnimation: React.FC = () => {
           const distanceSquared = dx * dx + dy * dy + dz * dz;
 
           // If the particle is too far, reset its position
-          if (distanceSquared > 8) {
+          if (distanceSquared > 15) {
             // 1.5 * 1.5 = 2.25
             positions[i3] = initialPositions[i3] ?? 0;
             positions[i3 + 1] = initialPositions[i3 + 1] ?? 0;
