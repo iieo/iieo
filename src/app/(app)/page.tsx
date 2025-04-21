@@ -1,7 +1,7 @@
 import ParticleAnimation from '@/components/particle-animation';
 import MainContent from './main-content';
 import VortexShader from '@/components/vortex-animation';
-import AnimationViewer from './background-shader-view';
+import AnimationViewer from './animation-viewer';
 
 export default function Page() {
   return (
