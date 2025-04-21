@@ -76,10 +76,12 @@ const fragmentShader = `
     
     // Calculate distance from center
     float dist = length(uv);
-    
-    // Calculate angle (0 to 2PI) to avoid discontinuity
+
+    // Calculate angle and shift the discontinuity to the left instead
     float angle = atan(uv.y, uv.x);
     angle = angle < 0.0 ? angle + TWO_PI : angle;
+    angle = mod(angle + PI, TWO_PI); // Shift by PI to move discontinuity to the left
+
     
     // Create the vortex effect
     float vortexFactor = 15.0;  // Controls the swirl intensity
