@@ -1,4 +1,5 @@
 import ParticleAnimation from '@/components/particle-animation';
+import Link from 'next/link';
 
 export default function Page() {
   return (
@@ -10,15 +11,16 @@ export default function Page() {
           <h1 className="text-white text-8xl max-md:text-5xl">Bauer</h1>
         </div>
         <div>
-          {/* <Link
-            href="https://formfast.bauerleopold.de"
-            className="border-white border-2 rounded text-white px-2 py-4 hover:bg-surface"
+          <Link
+            href="https://pertolo.iieo.de"
             target="_blank"
             rel="noopener noreferrer"
           >
-            Form Fast
-          </Link> */}
-          <p className='text-white'>coming soon...</p>
+            <div className="border-white border-2 rounded text-white px-6 py-4 hover:bg-surface w-fit hover:scale-105 transition-transform duration-200">
+              <h2 className="text-2xl">Pertolo</h2>
+              <p className="text-sm">The Drinking Game</p>
+            </div>
+          </Link>
         </div>
       </div>
     </main>
