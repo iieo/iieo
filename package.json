@@ -15,30 +15,45 @@
   },
   "dependencies": {
     "@t3-oss/env-nextjs": "0.7.3",
-    "drizzle-orm": "0.29.3",
-    "next": "14.1.0",
-    "next-auth": "4.24.5",
+    "drizzle-orm": "0.44.7",
+    "next": "16.0.7",
+    "next-auth": "5.0.0-beta.30",
     "postgres": "3.4.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
+    "react": "19.2.1",
+    "react-dom": "19.2.1",
     "three": "0.168.0",
     "zod": "3.22.4"
   },
   "packageManager": "pnpm@9.1.3",
   "devDependencies": {
     "@titanom/prettier-config": "2.0.0",
-    "@types/node": "20.11.5",
-    "@types/react": "18.2.48",
+    "@types/node": "24.7.0",
+    "@types/react": "19.2.2",
     "@types/react-dom": "18.2.18",
     "@types/three": "0.168.0",
     "autoprefixer": "10.0.1",
     "dotenv-cli": "7.3.0",
-    "drizzle-kit": "0.20.13",
+    "drizzle-kit": "0.31.8",
     "eslint": "8.56.0",
     "eslint-config-next": "14.1.0",
     "postcss": "8.4.33",
     "tailwindcss": "3.3.0",
     "tsx": "4.7.0",
     "typescript": "5.3.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "braces@<3.0.3": ">=3.0.3",
+      "micromatch@<4.0.8": ">=4.0.8",
+      "esbuild@<=0.24.2": ">=0.25.0",
+      "@babel/runtime@<7.26.10": ">=7.26.10",
+      "@babel/helpers@<7.26.10": ">=7.26.10",
+      "cross-spawn@>=7.0.0 <7.0.5": ">=7.0.5",
+      "brace-expansion@>=1.0.0 <=1.1.11": ">=1.1.12",
+      "brace-expansion@>=2.0.0 <=2.0.1": ">=2.0.2",
+      "nanoid@<3.3.8": ">=3.3.8",
+      "js-yaml@>=4.0.0 <4.1.1": ">=4.1.1",
+      "glob@>=10.2.0 <10.5.0": ">=10.5.0"
+    }
   }
 }
