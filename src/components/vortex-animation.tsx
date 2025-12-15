@@ -154,6 +154,7 @@ const VortexShader: React.FC<VortexShaderProps> = ({ className, style }) => {
 
     // Setup scene
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#000000');
     sceneRef.current = scene;
 
     // Setup camera (orthographic to keep aspect ratio consistent)
@@ -163,7 +164,6 @@ const VortexShader: React.FC<VortexShaderProps> = ({ className, style }) => {
     // Setup renderer with correct size
     const renderer = new THREE.WebGLRenderer({
       antialias: true,
-      alpha: true,
     });
 
     // Get the actual dimensions of the container
