@@ -3,10 +3,11 @@ import { Inter, Rubik_Mono_One } from 'next/font/google';
 
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const rubikMonoOne = Rubik_Mono_One({
   weight: '400',
   subsets: ['latin'],
+  variable: '--font-rubik',
 });
 
 export const metadata: Metadata = {
