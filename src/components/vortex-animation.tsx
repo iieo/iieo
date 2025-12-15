@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 
 const vertexShader = `
@@ -136,123 +136,126 @@ const fragmentShader = `
 `;
 
 interface VortexShaderProps {
-    className?: string;
-    style?: React.CSSProperties;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 const VortexShader: React.FC<VortexShaderProps> = ({ className, style }) => {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const requestRef = useRef<number | undefined>(undefined);
-    const sceneRef = useRef<THREE.Scene | null>(null);
-    const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
-    const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
-    const materialRef = useRef<THREE.ShaderMaterial | null>(null);
-    const timeRef = useRef<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const requestRef = useRef<number | undefined>(undefined);
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.OrthographicCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const materialRef = useRef<THREE.ShaderMaterial | null>(null);
+  const timeRef = useRef<number>(0);
 
-    useEffect(() => {
-        if (!containerRef.current) return;
+  useEffect(() => {
+    if (!containerRef.current) return;
 
-        // Setup scene
-        const scene = new THREE.Scene();
-        sceneRef.current = scene;
+    // Setup scene
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
 
-        // Setup camera (orthographic to keep aspect ratio consistent)
-        const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-        cameraRef.current = camera;
+    // Setup camera (orthographic to keep aspect ratio consistent)
+    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+    cameraRef.current = camera;
 
-        // Setup renderer with correct size
-        const renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true
-        });
+    // Setup renderer with correct size
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+    });
 
-        // Get the actual dimensions of the container
-        const width = containerRef.current.clientWidth;
-        const height = containerRef.current.clientHeight;
+    // Get the actual dimensions of the container
+    const width = containerRef.current.clientWidth;
+    const height = containerRef.current.clientHeight;
 
-        renderer.setSize(width, height);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        containerRef.current.appendChild(renderer.domElement);
-        rendererRef.current = renderer;
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    containerRef.current.appendChild(renderer.domElement);
+    rendererRef.current = renderer;
 
-        // Create shader material with proper resolution
-        const uniforms = {
-            time: { value: 0 },
-            resolution: { value: new THREE.Vector2(width, height) }
-        };
-
-        const material = new THREE.ShaderMaterial({
-            vertexShader,
-            fragmentShader,
-            uniforms
-        });
-        materialRef.current = material;
-
-        // Create plane geometry to cover the entire view
-        const geometry = new THREE.PlaneGeometry(2, 2);
-        const mesh = new THREE.Mesh(geometry, material);
-        scene.add(mesh);
-
-        // Handle resizing
-        const handleResize = () => {
-            if (!containerRef.current || !rendererRef.current || !materialRef.current) return;
-
-            const width = containerRef.current.clientWidth;
-            const height = containerRef.current.clientHeight;
-
-            rendererRef.current.setSize(width, height);
-            if (materialRef.current.uniforms.resolution && materialRef.current.uniforms.resolution.value) {
-                materialRef.current.uniforms.resolution.value.set(width, height);
-            }
-        };
-
-        window.addEventListener('resize', handleResize);
-
-        // Animation loop
-        const animate = (time: number) => {
-            timeRef.current = time * 0.001; // Convert to seconds
-
-            if (materialRef.current && materialRef.current.uniforms.time) {
-                materialRef.current.uniforms.time.value = timeRef.current;
-            }
-
-            if (rendererRef.current && sceneRef.current && cameraRef.current) {
-                rendererRef.current.render(sceneRef.current, cameraRef.current);
-            }
-
-            requestRef.current = requestAnimationFrame(animate);
-        };
-
-        requestRef.current = requestAnimationFrame(animate);
-
-        // Clean up
-        return () => {
-            window.removeEventListener('resize', handleResize);
-            if (requestRef.current) {
-                cancelAnimationFrame(requestRef.current);
-            }
-            if (rendererRef.current && containerRef.current) {
-                containerRef.current.removeChild(rendererRef.current.domElement);
-                renderer.dispose();
-            }
-            if (geometry) geometry.dispose();
-            if (material) material.dispose();
-        };
-    }, []);
-
-    // Default style ensures full width and height
-    const defaultStyle: React.CSSProperties = {
-        width: '100%',
-        height: '100%',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        overflow: 'hidden'
+    // Create shader material with proper resolution
+    const uniforms = {
+      time: { value: 0 },
+      resolution: { value: new THREE.Vector2(width, height) },
     };
 
-    const combinedStyle = { ...defaultStyle, ...style };
+    const material = new THREE.ShaderMaterial({
+      vertexShader,
+      fragmentShader,
+      uniforms,
+    });
+    materialRef.current = material;
 
-    return <div ref={containerRef} className={className} style={combinedStyle} />;
+    // Create plane geometry to cover the entire view
+    const geometry = new THREE.PlaneGeometry(2, 2);
+    const mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    // Handle resizing
+    const handleResize = () => {
+      if (!containerRef.current || !rendererRef.current || !materialRef.current) return;
+
+      const width = containerRef.current.clientWidth;
+      const height = containerRef.current.clientHeight;
+
+      rendererRef.current.setSize(width, height);
+      if (
+        materialRef.current.uniforms.resolution &&
+        materialRef.current.uniforms.resolution.value
+      ) {
+        materialRef.current.uniforms.resolution.value.set(width, height);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    // Animation loop
+    const animate = (time: number) => {
+      timeRef.current = time * 0.001; // Convert to seconds
+
+      if (materialRef.current && materialRef.current.uniforms.time) {
+        materialRef.current.uniforms.time.value = timeRef.current;
+      }
+
+      if (rendererRef.current && sceneRef.current && cameraRef.current) {
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+      }
+
+      requestRef.current = requestAnimationFrame(animate);
+    };
+
+    requestRef.current = requestAnimationFrame(animate);
+
+    // Clean up
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+      }
+      if (rendererRef.current && containerRef.current) {
+        containerRef.current.removeChild(rendererRef.current.domElement);
+        renderer.dispose();
+      }
+      if (geometry) geometry.dispose();
+      if (material) material.dispose();
+    };
+  }, []);
+
+  // Default style ensures full width and height
+  const defaultStyle: React.CSSProperties = {
+    width: '100%',
+    height: '100%',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    overflow: 'hidden',
+  };
+
+  const combinedStyle = { ...defaultStyle, ...style };
+
+  return <div ref={containerRef} className={className} style={combinedStyle} />;
 };
 
 export default VortexShader;

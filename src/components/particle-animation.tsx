@@ -55,10 +55,7 @@ const ParticleAnimation: React.FC = () => {
         const radius = size / 2;
 
         // Create a radial gradient for a glowing effect
-        const gradient = context.createRadialGradient(
-          center, center, 0,
-          center, center, radius
-        );
+        const gradient = context.createRadialGradient(center, center, 0, center, center, radius);
         gradient.addColorStop(0, '#4facfe'); // Bright cyan-blue core
         gradient.addColorStop(0.7, '#5f2c82'); // Rich purple
         gradient.addColorStop(1, 'rgba(95, 44, 130, 0)'); // Fade to transparent
@@ -184,7 +181,7 @@ const ParticleAnimation: React.FC = () => {
 
           if (distanceSquared < thresholdSquared) {
             // Calculate opacity based on distance (closer = more opaque)
-            const opacityFactor = 1 - (distanceSquared / thresholdSquared);
+            const opacityFactor = 1 - distanceSquared / thresholdSquared;
 
             // Add the particle position to the line positions
             linePositions.push(position.x, position.y, position.z);
@@ -203,9 +200,14 @@ const ParticleAnimation: React.FC = () => {
             const attractionStrength = 0.02 * opacityFactor; // Closer particles move more
 
             // Apply attraction toward mouse
-            positions[i3] = (positions[i3] ?? 0) + (mousePosition.x - (positions[i3] ?? 0)) * attractionStrength;
-            positions[i3 + 1] = (positions[i3 + 1] ?? 0) + (mousePosition.y - (positions[i3 + 1] ?? 0)) * attractionStrength;
-            positions[i3 + 2] = (positions[i3 + 2] ?? 0) + (mousePosition.z - (positions[i3 + 2] ?? 0)) * attractionStrength;
+            positions[i3] =
+              (positions[i3] ?? 0) + (mousePosition.x - (positions[i3] ?? 0)) * attractionStrength;
+            positions[i3 + 1] =
+              (positions[i3 + 1] ?? 0) +
+              (mousePosition.y - (positions[i3 + 1] ?? 0)) * attractionStrength;
+            positions[i3 + 2] =
+              (positions[i3 + 2] ?? 0) +
+              (mousePosition.z - (positions[i3 + 2] ?? 0)) * attractionStrength;
           }
         }
 

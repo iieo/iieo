@@ -15,6 +15,10 @@ const config: Config = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)'],
+        rubik: ['var(--font-rubik)'],
+      },
       boxShadow: {
         '3xl': '0 4px 9px 0px rgba(0, 41, 102, 0.2)',
       },
