@@ -24,20 +24,22 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${rubikMonoOne.variable} font-rubik antialiased`}>
         {children}
-        <footer className="font-sans fixed bottom-0 left-0 right-0 text-center p-2 bg-black text-white flex justify-center gap-4">
-          <p className="text-xs text-gray-400">
-            © {new Date().getFullYear()} Leopold Bauer. All rights reserved.
-          </p>
-          <p className="text-xs">
-            <a href="/impressum" className="text-gray-400 hover:underline">
-              Impressum
-            </a>
-          </p>
-          <p className="text-xs">
-            <a href="/datenschutz" className="text-gray-400 hover:underline">
-              Datenschutz
-            </a>
-          </p>
+        <footer className="font-sans relative z-10 py-8 px-8 text-white flex justify-center gap-6 border-t border-white/5">
+          <span className="text-xs text-white/25">
+            © {new Date().getFullYear()} Leopold Bauer
+          </span>
+          <a
+            href="/impressum"
+            className="text-xs text-white/25 hover:text-white/50 transition-colors"
+          >
+            Impressum
+          </a>
+          <a
+            href="/datenschutz"
+            className="text-xs text-white/25 hover:text-white/50 transition-colors"
+          >
+            Datenschutz
+          </a>
         </footer>
       </body>
     </html>
