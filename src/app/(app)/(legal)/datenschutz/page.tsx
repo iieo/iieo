@@ -2,49 +2,49 @@ import React from 'react';
 
 function PrivacyPolicy() {
   return (
-    <main className="max-w-2xl mx-auto p-8 font-sans">
-      <h1 className="text-3xl font-bold mb-6">Datenschutz&shy;erkl&auml;rung</h1>
+    <main className="max-w-3xl mx-auto px-6 py-24 font-sans text-white/70 leading-relaxed">
+      <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white font-rubik tracking-tight">Datenschutz&shy;erkl&auml;rung</h1>
 
-      <section className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">1. Datenschutz auf einen Blick</h2>
-        <h3 className="text-xl font-semibold mb-2">Allgemeine Hinweise</h3>
-        <p className="mb-2">
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">1. Datenschutz auf einen Blick</h2>
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Allgemeine Hinweise</h3>
+        <p className="mb-4 text-white/70">
           Die folgenden Hinweise geben einen einfachen &Uuml;berblick dar&uuml;ber, was mit Ihren
           personenbezogenen Daten passiert, wenn Sie diese Website besuchen. Personenbezogene Daten
           sind alle Daten, mit denen Sie pers&ouml;nlich identifiziert werden k&ouml;nnen.
           Ausf&uuml;hrliche Informationen zum Thema Datenschutz entnehmen Sie unserer unter diesem
           Text aufgef&uuml;hrten Datenschutzerkl&auml;rung.
         </p>
-        <h3 className="text-xl font-semibold mb-2">Datenerfassung auf dieser Website</h3>
-        <h4 className="font-semibold mb-1">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Datenerfassung auf dieser Website</h3>
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">
           Wer ist verantwortlich f&uuml;r die Datenerfassung auf dieser Website?
         </h4>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Die Datenverarbeitung auf dieser Website erfolgt durch den Websitebetreiber. Dessen
           Kontaktdaten k&ouml;nnen Sie dem Abschnitt &bdquo;Hinweis zur Verantwortlichen
           Stelle&ldquo; in dieser Datenschutzerkl&auml;rung entnehmen.
         </p>
-        <h4 className="font-semibold mb-1">Wie erfassen wir Ihre Daten?</h4>
-        <p className="mb-2">
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">Wie erfassen wir Ihre Daten?</h4>
+        <p className="mb-4 text-white/70">
           Ihre Daten werden zum einen dadurch erhoben, dass Sie uns diese mitteilen. Hierbei kann es
           sich z.&nbsp;B. um Daten handeln, die Sie in ein Kontaktformular eingeben.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Andere Daten werden automatisch oder nach Ihrer Einwilligung beim Besuch der Website durch
           unsere IT-Systeme erfasst. Das sind vor allem technische Daten (z.&nbsp;B.
           Internetbrowser, Betriebssystem oder Uhrzeit des Seitenaufrufs). Die Erfassung dieser
           Daten erfolgt automatisch, sobald Sie diese Website betreten.
         </p>
-        <h4 className="font-semibold mb-1">Wof&uuml;r nutzen wir Ihre Daten?</h4>
-        <p className="mb-2">
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">Wof&uuml;r nutzen wir Ihre Daten?</h4>
+        <p className="mb-4 text-white/70">
           Ein Teil der Daten wird erhoben, um eine fehlerfreie Bereitstellung der Website zu
           gew&auml;hrleisten. Andere Daten k&ouml;nnen zur Analyse Ihres Nutzerverhaltens verwendet
           werden. Sofern &uuml;ber die Website Vertr&auml;ge geschlossen oder angebahnt werden
           k&ouml;nnen, werden die &uuml;bermittelten Daten auch f&uuml;r Vertragsangebote,
           Bestellungen oder sonstige Auftragsanfragen verarbeitet.
         </p>
-        <h4 className="font-semibold mb-1">Welche Rechte haben Sie bez&uuml;glich Ihrer Daten?</h4>
-        <p className="mb-2">
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">Welche Rechte haben Sie bez&uuml;glich Ihrer Daten?</h4>
+        <p className="mb-4 text-white/70">
           Sie haben jederzeit das Recht, unentgeltlich Auskunft &uuml;ber Herkunft, Empf&auml;nger
           und Zweck Ihrer gespeicherten personenbezogenen Daten zu erhalten. Sie haben
           au&szlig;erdem ein Recht, die Berichtigung oder L&ouml;schung dieser Daten zu verlangen.
@@ -60,18 +60,18 @@ function PrivacyPolicy() {
         </p>
       </section>
 
-      <section className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">2. Hosting</h2>
-        <p className="mb-2">Wir hosten die Inhalte unserer Website bei folgendem Anbieter:</p>
-        <h3 className="text-xl font-semibold mb-2">Externes Hosting</h3>
-        <p className="mb-2">
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">2. Hosting</h2>
+        <p className="mb-4 text-white/70">Wir hosten die Inhalte unserer Website bei folgendem Anbieter:</p>
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Externes Hosting</h3>
+        <p className="mb-4 text-white/70">
           Diese Website wird extern gehostet. Die personenbezogenen Daten, die auf dieser Website
           erfasst werden, werden auf den Servern des Hosters / der Hoster gespeichert. Hierbei kann
           es sich v.&nbsp;a. um IP-Adressen, Kontaktanfragen, Meta- und Kommunikationsdaten,
           Vertragsdaten, Kontaktdaten, Namen, Websitezugriffe und sonstige Daten, die &uuml;ber eine
           Website generiert werden, handeln.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Das externe Hosting erfolgt zum Zwecke der Vertragserf&uuml;llung gegen&uuml;ber unseren
           potenziellen und bestehenden Kunden (Art. 6 Abs. 1 lit. b DSGVO) und im Interesse einer
           sicheren, schnellen und effizienten Bereitstellung unseres Online-Angebots durch einen
@@ -82,13 +82,13 @@ function PrivacyPolicy() {
           (z.&nbsp;B. Device-Fingerprinting) im Sinne des TDDDG umfasst. Die Einwilligung ist
           jederzeit widerrufbar.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Unser(e) Hoster wird bzw. werden Ihre Daten nur insoweit verarbeiten, wie dies zur
           Erf&uuml;llung seiner Leistungspflichten erforderlich ist und unsere Weisungen in Bezug
           auf diese Daten befolgen.
         </p>
-        <p className="mb-2">Wir setzen folgende(n) Hoster ein:</p>
-        <address className="not-italic mb-2">
+        <p className="mb-4 text-white/70">Wir setzen folgende(n) Hoster ein:</p>
+        <address className="not-italic text-white/70 mb-4">
           Vercel Inc.
           <br />
           Betrifft: Datenschutz
@@ -103,57 +103,57 @@ function PrivacyPolicy() {
         </address>
       </section>
 
-      <section className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">
           3. Allgemeine Hinweise und Pflicht&shy;informationen
         </h2>
-        <h3 className="text-xl font-semibold mb-2">Datenschutz</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Datenschutz</h3>
+        <p className="mb-4 text-white/70">
           Die Betreiber dieser Seiten nehmen den Schutz Ihrer pers&ouml;nlichen Daten sehr ernst.
           Wir behandeln Ihre personenbezogenen Daten vertraulich und entsprechend den gesetzlichen
           Datenschutzvorschriften sowie dieser Datenschutzerkl&auml;rung.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Sie diese Website benutzen, werden verschiedene personenbezogene Daten erhoben.
           Personenbezogene Daten sind Daten, mit denen Sie pers&ouml;nlich identifiziert werden
           k&ouml;nnen. Die vorliegende Datenschutzerkl&auml;rung erl&auml;utert, welche Daten wir
           erheben und wof&uuml;r wir sie nutzen. Sie erl&auml;utert auch, wie und zu welchem Zweck
           das geschieht.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wir weisen darauf hin, dass die Daten&uuml;bertragung im Internet (z.&nbsp;B. bei der
           Kommunikation per E-Mail) Sicherheitsl&uuml;cken aufweisen kann. Ein l&uuml;ckenloser
           Schutz der Daten vor dem Zugriff durch Dritte ist nicht m&ouml;glich.
         </p>
-        <h3 className="text-xl font-semibold mb-2">Hinweis zur verantwortlichen Stelle</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Hinweis zur verantwortlichen Stelle</h3>
+        <p className="mb-4 text-white/70">
           Die verantwortliche Stelle f&uuml;r die Datenverarbeitung auf dieser Website ist:
         </p>
-        <address className="not-italic mb-2">
+        <address className="not-italic text-white/70 mb-4">
           Leopold Bauer
           <br />
           Potsdamerstra&szlig;e 13
           <br />
           80802 M&uuml;nchen
         </address>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Telefon:{' '}
-          <a href="tel:+4917681701855" className="text-blue-600 hover:underline">
+          <a href="tel:+4917681701855" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
             +4917681701855
           </a>
           <br />
           E-Mail:{' '}
-          <a href="mailto:leopoldbauer@duck.com" className="text-blue-600 hover:underline">
+          <a href="mailto:leopoldbauer@duck.com" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
             leopoldbauer@duck.com
           </a>
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Verantwortliche Stelle ist die nat&uuml;rliche oder juristische Person, die allein oder
           gemeinsam mit anderen &uuml;ber die Zwecke und Mittel der Verarbeitung von
           personenbezogenen Daten (z.&nbsp;B. Namen, E-Mail-Adressen o. &Auml;.) entscheidet.
         </p>
-        <h3 className="text-xl font-semibold mb-2">Speicherdauer</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Speicherdauer</h3>
+        <p className="mb-4 text-white/70">
           Soweit innerhalb dieser Datenschutzerkl&auml;rung keine speziellere Speicherdauer genannt
           wurde, verbleiben Ihre personenbezogenen Daten bei uns, bis der Zweck f&uuml;r die
           Datenverarbeitung entf&auml;llt. Wenn Sie ein berechtigtes L&ouml;schersuchen geltend
@@ -163,10 +163,10 @@ function PrivacyPolicy() {
           Aufbewahrungsfristen); im letztgenannten Fall erfolgt die L&ouml;schung nach Fortfall
           dieser Gr&uuml;nde.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Allgemeine Hinweise zu den Rechtsgrundlagen der Datenverarbeitung auf dieser Website
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Sofern Sie in die Datenverarbeitung eingewilligt haben, verarbeiten wir Ihre
           personenbezogenen Daten auf Grundlage von Art. 6 Abs. 1 lit. a DSGVO bzw. Art. 9 Abs. 2
           lit. a DSGVO, sofern besondere Datenkategorien nach Art. 9 Abs. 1 DSGVO verarbeitet
@@ -185,11 +185,11 @@ function PrivacyPolicy() {
           einschl&auml;gigen Rechtsgrundlagen wird in den folgenden Abs&auml;tzen dieser
           Datenschutzerkl&auml;rung informiert.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Hinweis zur Datenweitergabe in datenschutzrechtlich nicht sichere Drittstaaten sowie die
           Weitergabe an US-Unternehmen, die nicht DPF-zertifiziert sind
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wir verwenden unter anderem Tools von Unternehmen mit Sitz in datenschutzrechtlich nicht
           sicheren Drittstaaten sowie US-Tools, deren Anbieter nicht nach dem EU-US-Data Privacy
           Framework (DPF) zertifiziert sind. Wenn diese Tools aktiv sind, k&ouml;nnen Ihre
@@ -197,7 +197,7 @@ function PrivacyPolicy() {
           weisen darauf hin, dass in datenschutzrechtlich unsicheren Drittstaaten kein mit der EU
           vergleichbares Datenschutzniveau garantiert werden kann.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wir weisen darauf hin, dass die USA als sicherer Drittstaat grunds&auml;tzlich ein mit der
           EU vergleichbares Datenschutzniveau aufweisen. Eine Daten&uuml;bertragung in die USA ist
           danach zul&auml;ssig, wenn der Empf&auml;nger eine Zertifizierung unter dem &bdquo;EU-US
@@ -206,8 +206,8 @@ function PrivacyPolicy() {
           einschlie&szlig;lich der Datenempf&auml;nger finden Sie in dieser
           Datenschutzerkl&auml;rung.
         </p>
-        <h3 className="text-xl font-semibold mb-2">Empf&auml;nger von personenbezogenen Daten</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Empf&auml;nger von personenbezogenen Daten</h3>
+        <p className="mb-4 text-white/70">
           Im Rahmen unserer Gesch&auml;ftst&auml;tigkeit arbeiten wir mit verschiedenen externen
           Stellen zusammen. Dabei ist teilweise auch eine &Uuml;bermittlung von personenbezogenen
           Daten an diese externen Stellen erforderlich. Wir geben personenbezogene Daten nur dann an
@@ -220,20 +220,20 @@ function PrivacyPolicy() {
           weiter. Im Falle einer gemeinsamen Verarbeitung wird ein Vertrag &uuml;ber gemeinsame
           Verarbeitung geschlossen.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Widerruf Ihrer Einwilligung zur Datenverarbeitung
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Viele Datenverarbeitungsvorg&auml;nge sind nur mit Ihrer ausdr&uuml;cklichen Einwilligung
           m&ouml;glich. Sie k&ouml;nnen eine bereits erteilte Einwilligung jederzeit widerrufen. Die
           Rechtm&auml;&szlig;igkeit der bis zum Widerruf erfolgten Datenverarbeitung bleibt vom
           Widerruf unber&uuml;hrt.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Widerspruchsrecht gegen die Datenerhebung in besonderen F&auml;llen sowie gegen
           Direktwerbung (Art. 21 DSGVO)
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           WENN DIE DATENVERARBEITUNG AUF GRUNDLAGE VON ART. 6 ABS. 1 LIT. E ODER F DSGVO ERFOLGT,
           HABEN SIE JEDERZEIT DAS RECHT, AUS GR&Uuml;NDEN, DIE SICH AUS IHRER BESONDEREN SITUATION
           ERGEBEN, GEGEN DIE VERARBEITUNG IHRER PERSONENBEZOGENEN DATEN WIDERSPRUCH EINZULEGEN; DIES
@@ -246,7 +246,7 @@ function PrivacyPolicy() {
           AUS&Uuml;BUNG ODER VERTEIDIGUNG VON RECHTSANSPR&Uuml;CHEN (WIDERSPRUCH NACH ART. 21 ABS. 1
           DSGVO).
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           WERDEN IHRE PERSONENBEZOGENEN DATEN VERARBEITET, UM DIREKTWERBUNG ZU BETREIBEN, SO HABEN
           SIE DAS RECHT, JEDERZEIT WIDERSPRUCH GEGEN DIE VERARBEITUNG SIE BETREFFENDER
           PERSONENBEZOGENER DATEN ZUM ZWECKE DERARTIGER WERBUNG EINZULEGEN; DIES GILT AUCH F&Uuml;R
@@ -254,43 +254,43 @@ function PrivacyPolicy() {
           WIDERSPRECHEN, WERDEN IHRE PERSONENBEZOGENEN DATEN ANSCHLIESSEND NICHT MEHR ZUM ZWECKE DER
           DIREKTWERBUNG VERWENDET (WIDERSPRUCH NACH ART. 21 ABS. 2 DSGVO).
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Beschwerde&shy;recht bei der zust&auml;ndigen Aufsichts&shy;beh&ouml;rde
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Im Falle von Verst&ouml;&szlig;en gegen die DSGVO steht den Betroffenen ein
           Beschwerderecht bei einer Aufsichtsbeh&ouml;rde, insbesondere in dem Mitgliedstaat ihres
           gew&ouml;hnlichen Aufenthalts, ihres Arbeitsplatzes oder des Orts des mutma&szlig;lichen
           Versto&szlig;es zu. Das Beschwerderecht besteht unbeschadet anderweitiger
           verwaltungsrechtlicher oder gerichtlicher Rechtsbehelfe.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Recht auf Daten&shy;&uuml;bertrag&shy;barkeit
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Sie haben das Recht, Daten, die wir auf Grundlage Ihrer Einwilligung oder in
           Erf&uuml;llung eines Vertrags automatisiert verarbeiten, an sich oder an einen Dritten in
           einem g&auml;ngigen, maschinenlesbaren Format aush&auml;ndigen zu lassen. Sofern Sie die
           direkte &Uuml;bertragung der Daten an einen anderen Verantwortlichen verlangen, erfolgt
           dies nur, soweit es technisch machbar ist.
         </p>
-        <h3 className="text-xl font-semibold mb-2">Auskunft, Berichtigung und L&ouml;schung</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Auskunft, Berichtigung und L&ouml;schung</h3>
+        <p className="mb-4 text-white/70">
           Sie haben im Rahmen der geltenden gesetzlichen Bestimmungen jederzeit das Recht auf
           unentgeltliche Auskunft &uuml;ber Ihre gespeicherten personenbezogenen Daten, deren
           Herkunft und Empf&auml;nger und den Zweck der Datenverarbeitung und ggf. ein Recht auf
           Berichtigung oder L&ouml;schung dieser Daten. Hierzu sowie zu weiteren Fragen zum Thema
           personenbezogene Daten k&ouml;nnen Sie sich jederzeit an uns wenden.
         </p>
-        <h3 className="text-xl font-semibold mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">
           Recht auf Einschr&auml;nkung der Verarbeitung
         </h3>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Sie haben das Recht, die Einschr&auml;nkung der Verarbeitung Ihrer personenbezogenen Daten
           zu verlangen. Hierzu k&ouml;nnen Sie sich jederzeit an uns wenden. Das Recht auf
           Einschr&auml;nkung der Verarbeitung besteht in folgenden F&auml;llen:
         </p>
-        <ul className="mb-2 list-disc list-inside">
+        <ul className="mb-6 list-disc list-inside text-white/70 space-y-2">
           <li>
             Wenn Sie die Richtigkeit Ihrer bei uns gespeicherten personenbezogenen Daten bestreiten,
             ben&ouml;tigen wir in der Regel Zeit, um dies zu &uuml;berpr&uuml;fen. F&uuml;r die
@@ -315,7 +315,7 @@ function PrivacyPolicy() {
             Einschr&auml;nkung der Verarbeitung Ihrer personenbezogenen Daten zu verlangen.
           </li>
         </ul>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Sie die Verarbeitung Ihrer personenbezogenen Daten eingeschr&auml;nkt haben,
           d&uuml;rfen diese Daten &ndash; von ihrer Speicherung abgesehen &ndash; nur mit Ihrer
           Einwilligung oder zur Geltendmachung, Aus&uuml;bung oder Verteidigung von
@@ -323,24 +323,24 @@ function PrivacyPolicy() {
           juristischen Person oder aus Gr&uuml;nden eines wichtigen &ouml;ffentlichen Interesses der
           Europ&auml;ischen Union oder eines Mitgliedstaats verarbeitet werden.
         </p>
-        <h3 className="text-xl font-semibold mb-2">SSL- bzw. TLS-Verschl&uuml;sselung</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">SSL- bzw. TLS-Verschl&uuml;sselung</h3>
+        <p className="mb-4 text-white/70">
           Diese Seite nutzt aus Sicherheitsgr&uuml;nden und zum Schutz der &Uuml;bertragung
           vertraulicher Inhalte, wie zum Beispiel Bestellungen oder Anfragen, die Sie an uns als
           Seitenbetreiber senden, eine SSL- bzw. TLS-Verschl&uuml;sselung. Eine verschl&uuml;sselte
           Verbindung erkennen Sie daran, dass die Adresszeile des Browsers von &bdquo;http://&ldquo;
           auf &bdquo;https://&ldquo; wechselt und an dem Schloss-Symbol in Ihrer Browserzeile.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn die SSL- bzw. TLS-Verschl&uuml;sselung aktiviert ist, k&ouml;nnen die Daten, die Sie
           an uns &uuml;bermitteln, nicht von Dritten mitgelesen werden.
         </p>
       </section>
 
-      <section className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">4. Datenerfassung auf dieser Website</h2>
-        <h3 className="text-xl font-semibold mb-2">Cookies</h3>
-        <p className="mb-2">
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">4. Datenerfassung auf dieser Website</h2>
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Cookies</h3>
+        <p className="mb-4 text-white/70">
           Unsere Internetseiten verwenden so genannte &bdquo;Cookies&ldquo;. Cookies sind kleine
           Datenpakete und richten auf Ihrem Endger&auml;t keinen Schaden an. Sie werden entweder
           vor&uuml;bergehend f&uuml;r die Dauer einer Sitzung (Session-Cookies) oder dauerhaft
@@ -349,19 +349,19 @@ function PrivacyPolicy() {
           Endger&auml;t gespeichert, bis Sie diese selbst l&ouml;schen oder eine automatische
           L&ouml;schung durch Ihren Webbrowser erfolgt.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Cookies k&ouml;nnen von uns (First-Party-Cookies) oder von Drittunternehmen stammen (sog.
           Third-Party-Cookies). Third-Party-Cookies erm&ouml;glichen die Einbindung bestimmter
           Dienstleistungen von Drittunternehmen innerhalb von Webseiten (z.&nbsp;B. Cookies zur
           Abwicklung von Zahlungsdienstleistungen).
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Cookies haben verschiedene Funktionen. Zahlreiche Cookies sind technisch notwendig, da
           bestimmte Webseitenfunktionen ohne diese nicht funktionieren w&uuml;rden (z.&nbsp;B. die
           Warenkorbfunktion oder die Anzeige von Videos). Andere Cookies k&ouml;nnen zur Auswertung
           des Nutzerverhaltens oder zu Werbezwecken verwendet werden.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Cookies, die zur Durchf&uuml;hrung des elektronischen Kommunikationsvorgangs, zur
           Bereitstellung bestimmter, von Ihnen erw&uuml;nschter Funktionen (z.&nbsp;B. f&uuml;r die
           Warenkorbfunktion) oder zur Optimierung der Website (z.&nbsp;B. Cookies zur Messung des
@@ -374,32 +374,32 @@ function PrivacyPolicy() {
           Einwilligung (Art. 6 Abs. 1 lit. a DSGVO und &sect; 25 Abs. 1 TDDDG); die Einwilligung ist
           jederzeit widerrufbar.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Sie k&ouml;nnen Ihren Browser so einstellen, dass Sie &uuml;ber das Setzen von Cookies
           informiert werden und Cookies nur im Einzelfall erlauben, die Annahme von Cookies f&uuml;r
           bestimmte F&auml;lle oder generell ausschlie&szlig;en sowie das automatische L&ouml;schen
           der Cookies beim Schlie&szlig;en des Browsers aktivieren. Bei der Deaktivierung von
           Cookies kann die Funktionalit&auml;t dieser Website eingeschr&auml;nkt sein.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Welche Cookies und Dienste auf dieser Website eingesetzt werden, k&ouml;nnen Sie dieser
           Datenschutzerkl&auml;rung entnehmen.
         </p>
       </section>
 
-      <section className="mb-6">
-        <h2 className="text-2xl font-bold mb-4">5. Plugins und Tools</h2>
-        <h3 className="text-xl font-semibold mb-2">YouTube</h3>
-        <p className="mb-2">
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">5. Plugins und Tools</h2>
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">YouTube</h3>
+        <p className="mb-4 text-white/70">
           Diese Website bindet Videos der Website YouTube ein. Betreiber der Website ist die Google
           Ireland Limited (&bdquo;Google&ldquo;), Gordon House, Barrow Street, Dublin 4, Irland.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Sie eine unserer Webseiten besuchen, auf denen YouTube eingebunden ist, wird eine
           Verbindung zu den Servern von YouTube hergestellt. Dabei wird dem YouTube-Server
           mitgeteilt, welche unserer Seiten Sie besucht haben.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Des Weiteren kann YouTube verschiedene Cookies auf Ihrem Endger&auml;t speichern oder
           vergleichbare Technologien zur Wiedererkennung verwenden (z.&nbsp;B.
           Device-Fingerprinting). Auf diese Weise kann YouTube Informationen &uuml;ber Besucher
@@ -408,12 +408,12 @@ function PrivacyPolicy() {
           Betrugsversuchen vorzubeugen. Des Weiteren werden die erfassten Daten im
           Google-Werbenetzwerk verarbeitet.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Sie in Ihrem YouTube-Account eingeloggt sind, erm&ouml;glichen Sie YouTube, Ihr
           Surfverhalten direkt Ihrem pers&ouml;nlichen Profil zuzuordnen. Dies k&ouml;nnen Sie
           verhindern, indem Sie sich aus Ihrem YouTube-Account ausloggen.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Die Nutzung von YouTube erfolgt im Interesse einer ansprechenden Darstellung unserer
           Online-Angebote. Dies stellt ein berechtigtes Interesse im Sinne von Art. 6 Abs. 1 lit. f
           DSGVO dar. Sofern eine entsprechende Einwilligung abgefragt wurde, erfolgt die
@@ -422,20 +422,20 @@ function PrivacyPolicy() {
           Informationen im Endger&auml;t des Nutzers (z.&nbsp;B. Device-Fingerprinting) im Sinne des
           TDDDG umfasst. Die Einwilligung ist jederzeit widerrufbar.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Weitere Informationen zum Umgang mit Nutzerdaten finden Sie in der
           Datenschutzerkl&auml;rung von YouTube unter:{' '}
           <a
             href="https://policies.google.com/privacy?hl=de"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://policies.google.com/privacy?hl=de
           </a>
           .
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Das Unternehmen verf&uuml;gt &uuml;ber eine Zertifizierung nach dem &bdquo;EU-US Data
           Privacy Framework&ldquo; (DPF). Der DPF ist ein &Uuml;bereinkommen zwischen der
           Europ&auml;ischen Union und den USA, der die Einhaltung europ&auml;ischer
@@ -446,19 +446,19 @@ function PrivacyPolicy() {
             href="https://www.dataprivacyframework.gov/participant/5780"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://www.dataprivacyframework.gov/participant/5780
           </a>
           .
         </p>
-        <h3 className="text-xl font-semibold mb-2">Google Fonts</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Google Fonts</h3>
+        <p className="mb-4 text-white/70">
           Diese Seite nutzt zur einheitlichen Darstellung von Schriftarten so genannte Google Fonts,
           die von Google bereitgestellt werden. Beim Aufruf einer Seite l&auml;dt Ihr Browser die
           ben&ouml;tigten Fonts in ihren Browsercache, um Texte und Schriftarten korrekt anzuzeigen.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Zu diesem Zweck muss der von Ihnen verwendete Browser Verbindung zu den Servern von Google
           aufnehmen. Hierdurch erlangt Google Kenntnis dar&uuml;ber, dass &uuml;ber Ihre IP-Adresse
           diese Website aufgerufen wurde. Die Nutzung von Google Fonts erfolgt auf Grundlage von
@@ -470,17 +470,17 @@ function PrivacyPolicy() {
           (z.&nbsp;B. Device-Fingerprinting) im Sinne des TDDDG umfasst. Die Einwilligung ist
           jederzeit widerrufbar.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Ihr Browser Google Fonts nicht unterst&uuml;tzt, wird eine Standardschrift von Ihrem
           Computer genutzt.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Weitere Informationen zu Google Fonts finden Sie unter{' '}
           <a
             href="https://developers.google.com/fonts/faq"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://developers.google.com/fonts/faq
           </a>{' '}
@@ -489,13 +489,13 @@ function PrivacyPolicy() {
             href="https://policies.google.com/privacy?hl=de"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://policies.google.com/privacy?hl=de
           </a>
           .
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Das Unternehmen verf&uuml;gt &uuml;ber eine Zertifizierung nach dem &bdquo;EU-US Data
           Privacy Framework&ldquo; (DPF). Der DPF ist ein &Uuml;bereinkommen zwischen der
           Europ&auml;ischen Union und den USA, der die Einhaltung europ&auml;ischer
@@ -506,19 +506,19 @@ function PrivacyPolicy() {
             href="https://www.dataprivacyframework.gov/participant/5780"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://www.dataprivacyframework.gov/participant/5780
           </a>
           .
         </p>
-        <h3 className="text-xl font-semibold mb-2">Font Awesome</h3>
-        <p className="mb-2">
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Font Awesome</h3>
+        <p className="mb-4 text-white/70">
           Diese Seite nutzt zur einheitlichen Darstellung von Schriftarten und Symbolen Font
           Awesome. Anbieter ist die Fonticons, Inc., 6 Porter Road Apartment 3R, Cambridge,
           Massachusetts, USA.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Beim Aufruf einer Seite l&auml;dt Ihr Browser die ben&ouml;tigten Fonts in ihren
           Browsercache, um Texte, Schriftarten und Symbole korrekt anzuzeigen. Zu diesem Zweck muss
           der von Ihnen verwendete Browser Verbindung zu den Servern von Font Awesome aufnehmen.
@@ -532,18 +532,18 @@ function PrivacyPolicy() {
           Device-Fingerprinting) im Sinne des TDDDG umfasst. Die Einwilligung ist jederzeit
           widerrufbar.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Wenn Ihr Browser Font Awesome nicht unterst&uuml;tzt, wird eine Standardschrift von Ihrem
           Computer genutzt.
         </p>
-        <p className="mb-2">
+        <p className="mb-4 text-white/70">
           Weitere Informationen zu Font Awesome finden Sie&nbsp;und in der Datenschutzerkl&auml;rung
           von Font Awesome unter:{' '}
           <a
             href="https://fontawesome.com/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-600 hover:underline"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
           >
             https://fontawesome.com/privacy
           </a>
@@ -551,9 +551,9 @@ function PrivacyPolicy() {
         </p>
       </section>
 
-      <footer className="mt-8 text-sm text-gray-500">
+      <footer className="mt-16 pt-8 border-t border-white/10 text-xs text-white/40">
         Quelle:{' '}
-        <a href="https://www.e-recht24.de" className="text-blue-600 hover:underline">
+        <a href="https://www.e-recht24.de" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
           https://www.e-recht24.de
         </a>
       </footer>

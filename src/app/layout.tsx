@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${rubikMonoOne.variable} font-rubik antialiased`}>
+      <body className={`${inter.variable} ${rubikMonoOne.variable} font-rubik antialiased bg-black text-white`}>
         {children}
         <footer className="font-sans relative z-10 py-8 px-8 text-white flex justify-center gap-6 border-t border-white/5">
           <span className="text-xs text-white/25">

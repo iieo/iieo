@@ -2,11 +2,11 @@ import React from 'react';
 
 function Imprint() {
   return (
-    <main className="max-w-2xl mx-auto p-8 font-sans">
-      <h1 className="text-3xl font-bold mb-6">Impressum</h1>
-      <section className="mb-6">
-        <p className="mb-2">Angaben gemäß § 5 DDG</p>
-        <address className="not-italic">
+    <main className="max-w-3xl mx-auto px-6 py-24 font-sans text-white/70 leading-relaxed">
+      <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white font-rubik tracking-tight">Impressum</h1>
+      <section className="mb-10">
+        <p className="mb-4 text-white/70">Angaben gemäß § 5 DDG</p>
+        <address className="not-italic text-white/70">
           Leopold Bauer
           <br />
           Potsdamerstraße 13
@@ -16,31 +16,31 @@ function Imprint() {
         </address>
       </section>
 
-      <section className="mb-6">
-        <strong className="font-semibold">Vertreten durch:</strong>
+      <section className="mb-10">
+        <strong className="font-semibold text-white">Vertreten durch:</strong>
         <br />
         Leopold Bauer
       </section>
 
-      <section className="mb-6">
-        <strong className="font-semibold">Kontakt:</strong>
+      <section className="mb-10">
+        <strong className="font-semibold text-white">Kontakt:</strong>
         <br />
         Telefon:{' '}
-        <a href="tel:+4917684994760" className="text-blue-600 hover:underline">
+        <a href="tel:+4917684994760" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
           +49-17681701855
         </a>
         <br />
         E-Mail:{' '}
-        <a href="mailto:leopoldbauer@duck.com" className="text-blue-600 hover:underline">
+        <a href="mailto:leopoldbauer@duck.com" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
           leopoldbauer@duck.com
         </a>
       </section>
 
-      <section className="mb-6">
-        <strong className="font-semibold">Haftungsausschluss:</strong>
+      <section className="mb-10">
+        <strong className="font-semibold text-white">Haftungsausschluss:</strong>
         <br />
-        <strong className="font-semibold">Haftung für Inhalte</strong>
-        <p className="mb-4">
+        <strong className="font-semibold text-white">Haftung für Inhalte</strong>
+        <p className="mb-6 text-white/70">
           Die Inhalte unserer Seiten wurden mit größter Sorgfalt erstellt. Für die Richtigkeit,
           Vollständigkeit und Aktualität der Inhalte können wir jedoch keine Gewähr übernehmen. Als
           Diensteanbieter sind wir gemäß § 7 Abs.1 DDG für eigene Inhalte auf diesen Seiten nach den
@@ -53,8 +53,8 @@ function Imprint() {
           Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend
           entfernen.
         </p>
-        <strong className="font-semibold">Haftung für Links</strong>
-        <p className="mb-4">
+        <strong className="font-semibold text-white">Haftung für Links</strong>
+        <p className="mb-6 text-white/70">
           Unser Angebot enthält Links zu externen Webseiten Dritter, auf deren Inhalte wir keinen
           Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen.
           Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der
@@ -64,7 +64,7 @@ function Imprint() {
           ist jedoch ohne konkrete Anhaltspunkte einer Rechtsverletzung nicht zumutbar. Bei
           Bekanntwerden von Rechtsverletzungen werden wir derartige Links umgehend entfernen.
         </p>
-        <strong className="font-semibold">Datenschutz</strong>
+        <strong className="font-semibold text-white">Datenschutz</strong>
         <p>
           Die Nutzung unserer Webseite ist in der Regel ohne Angabe personenbezogener Daten möglich.
           Soweit auf unseren Seiten personenbezogene Daten (beispielsweise Name, Anschrift oder
@@ -84,12 +84,12 @@ function Imprint() {
         </p>
       </section>
 
-      <footer className="mt-8 text-sm text-gray-500">
+      <footer className="mt-16 pt-8 border-t border-white/10 text-xs text-white/40">
         Erstellt mit dem{' '}
         <a
           href="https://impressum-generator.de"
           rel="dofollow"
-          className="text-blue-600 hover:underline"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
         >
           Impressum-Generator
         </a>{' '}
@@ -97,7 +97,7 @@ function Imprint() {
         <a
           href="https://websitewissen.com/website-erstellen"
           rel="dofollow"
-          className="text-blue-600 hover:underline"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
         >
           Website-Erstellung
         </a>
@@ -105,7 +105,7 @@ function Imprint() {
         <a
           href="https://websitewissen.com/homepage-baukasten-vergleich"
           rel="dofollow"
-          className="text-blue-600 hover:underline"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
         >
           Homepage-Baukästen
         </a>{' '}
@@ -113,7 +113,7 @@ function Imprint() {
         <a
           href="https://websitewissen.com/shopsysteme-vergleich"
           rel="dofollow"
-          className="text-blue-600 hover:underline"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
         >
           Shopsysteme
         </a>
@@ -121,7 +121,7 @@ function Imprint() {
         <a
           href="https://www.kanzlei-hasselbach.de/"
           rel="dofollow"
-          className="text-blue-600 hover:underline"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
         >
           Kanzlei Hasselbach
         </a>

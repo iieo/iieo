@@ -340,18 +340,6 @@ function MainContent() {
             leopoldbauer@duck.com
           </motion.a>
         </SectionReveal>
-
-        <div className="absolute bottom-8 left-0 right-0 flex justify-center gap-6 font-sans">
-          <span className="text-xs text-white/20">
-            &copy; {new Date().getFullYear()} Leopold Bauer
-          </span>
-          <a href="/impressum" className="text-xs text-white/20 hover:text-white/40 transition-colors">
-            Impressum
-          </a>
-          <a href="/datenschutz" className="text-xs text-white/20 hover:text-white/40 transition-colors">
-            Datenschutz
-          </a>
-        </div>
       </section>
     </div>
   );
