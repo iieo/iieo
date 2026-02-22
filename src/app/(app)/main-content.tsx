@@ -195,12 +195,12 @@ function MainContent() {
       {/* Hero */}
       <section
         ref={setSectionRef(0)}
-        className="h-[100dvh] snap-start snap-always flex flex-col justify-center px-8 md:px-16 lg:px-24 relative"
+        className="min-h-dvh md:snap-start md:snap-always flex flex-col justify-center px-6 sm:px-8 md:px-16 lg:px-24 relative py-20 md:py-0"
       >
-        <h1 className="text-white text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
+        <h1 className="text-white text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
           <LetterPull text={FIRST_NAME} delay={0.3} />
         </h1>
-        <h1 className="text-white text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
+        <h1 className="text-white text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
           <LetterPull text={LAST_NAME} delay={0.6} />
         </h1>
         <motion.p
@@ -248,7 +248,7 @@ function MainContent() {
       {/* Projects */}
       <section
         ref={setSectionRef(1)}
-        className="h-[100dvh] snap-start snap-always flex flex-col justify-center px-8 md:px-16 lg:px-24"
+        className="min-h-dvh md:snap-start md:snap-always flex flex-col justify-center px-6 sm:px-8 md:px-16 lg:px-24 py-24 md:py-0"
       >
         <SectionReveal>
           <p className="text-white/30 text-xs font-sans tracking-[0.2em] uppercase mb-8">
@@ -296,7 +296,7 @@ function MainContent() {
       {/* Work & Education */}
       <section
         ref={setSectionRef(2)}
-        className="h-[100dvh] snap-start snap-always flex flex-col justify-center px-8 md:px-16 lg:px-24"
+        className="min-h-dvh md:snap-start md:snap-always flex flex-col justify-center px-6 sm:px-8 md:px-16 lg:px-24 py-24 md:py-0"
       >
         <SectionReveal>
           <p className="text-white/30 text-xs font-sans tracking-[0.2em] uppercase mb-8">
@@ -323,7 +323,7 @@ function MainContent() {
       {/* Contact */}
       <section
         ref={setSectionRef(3)}
-        className="h-[100dvh] snap-start snap-always flex flex-col justify-center px-8 md:px-16 lg:px-24 relative"
+        className="min-h-dvh md:snap-start md:snap-always flex flex-col justify-center px-6 sm:px-8 md:px-16 lg:px-24 relative py-24 md:py-0"
       >
         <SectionReveal>
           <p className="text-white/30 text-xs font-sans tracking-[0.2em] uppercase mb-10">
@@ -333,7 +333,7 @@ function MainContent() {
         <SectionReveal delay={0.1}>
           <motion.a
             href="mailto:leopoldbauer@duck.com"
-            className="text-white text-2xl md:text-4xl lg:text-5xl font-rubik inline-block break-all"
+            className="text-white text-xl sm:text-2xl md:text-4xl lg:text-5xl font-rubik inline-block break-all"
             whileHover={{ opacity: 0.6, x: 4 }}
             transition={{ duration: 0.3 }}
           >
