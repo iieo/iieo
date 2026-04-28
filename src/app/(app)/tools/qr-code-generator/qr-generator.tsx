@@ -73,6 +73,8 @@ export default function QrGenerator() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const qrInstanceRef = useRef<any>(null);
+  const appendedContainerRef = useRef<HTMLDivElement | null>(null);
+  const [downloadFormat, setDownloadFormat] = useState<ExportFormat>('png');
 
   const data = buildQrString(contentType, content);
   const debouncedData = useDebounced(data, 150);
@@ -117,12 +119,15 @@ export default function QrGenerator() {
 
       if (!qrInstanceRef.current) {
         qrInstanceRef.current = new QRCodeStyling(options);
-        if (containerRef.current) {
-          containerRef.current.innerHTML = '';
-          qrInstanceRef.current.append(containerRef.current);
-        }
       } else {
         qrInstanceRef.current.update(options);
+      }
+
+      const container = containerRef.current;
+      if (container && appendedContainerRef.current !== container) {
+        container.innerHTML = '';
+        qrInstanceRef.current.append(container);
+        appendedContainerRef.current = container;
       }
     })();
 
@@ -162,10 +167,10 @@ export default function QrGenerator() {
     [showToast],
   );
 
-  const handleDownload = useCallback(async (format: ExportFormat) => {
+  const handleDownload = useCallback(async () => {
     if (!qrInstanceRef.current) return;
-    await qrInstanceRef.current.download({ name: 'qr-code', extension: format });
-  }, []);
+    await qrInstanceRef.current.download({ name: 'qr-code', extension: downloadFormat });
+  }, [downloadFormat]);
 
   const handleCopyDataUrl = useCallback(async () => {
     if (!qrInstanceRef.current) return;
@@ -411,29 +416,41 @@ export default function QrGenerator() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <button
-              onClick={() => handleDownload('png')}
-              disabled={isContentEmpty}
-              className={`${buttonClass} bg-white text-black border-white hover:bg-white/90`}
+          <div>
+            <p className={labelClass}>Format</p>
+            <div
+              role="radiogroup"
+              aria-label="Download-Format"
+              className="grid grid-cols-3 gap-2"
             >
-              PNG
-            </button>
-            <button
-              onClick={() => handleDownload('svg')}
-              disabled={isContentEmpty}
-              className={`${buttonClass} border-white/20 text-white hover:border-white/40`}
-            >
-              SVG
-            </button>
-            <button
-              onClick={() => handleDownload('jpeg')}
-              disabled={isContentEmpty}
-              className={`${buttonClass} border-white/20 text-white hover:border-white/40`}
-            >
-              JPEG
-            </button>
+              {(['png', 'svg', 'jpeg'] as const).map((fmt) => {
+                const active = downloadFormat === fmt;
+                return (
+                  <button
+                    key={fmt}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setDownloadFormat(fmt)}
+                    className={`${buttonClass} ${
+                      active
+                        ? 'bg-white/10 border-white/30 text-white'
+                        : 'border-white/10 text-white/50 hover:border-white/25'
+                    }`}
+                  >
+                    {fmt.toUpperCase()}
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          <button
+            onClick={handleDownload}
+            disabled={isContentEmpty}
+            className={`${buttonClass} w-full bg-white text-black border-white hover:bg-white/90`}
+          >
+            Download
+          </button>
 
           <div className="grid grid-cols-2 gap-2">
             <button
