@@ -92,9 +92,7 @@ function ProjectCard({
                 {description}
               </p>
             </div>
-            <motion.span
-              className="text-white/20 text-lg font-sans mt-1 shrink-0 group-hover:text-white/50 transition-colors"
-            >
+            <motion.span className="text-white/20 text-lg font-sans mt-1 shrink-0 group-hover:text-white/50 transition-colors">
               &rarr;
             </motion.span>
           </div>
@@ -104,13 +102,7 @@ function ProjectCard({
   );
 }
 
-function NavDots({
-  active,
-  onNavigate,
-}: {
-  active: number;
-  onNavigate: (index: number) => void;
-}) {
+function NavDots({ active, onNavigate }: { active: number; onNavigate: (index: number) => void }) {
   return (
     <motion.nav
       className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-3 max-md:hidden"
@@ -180,9 +172,12 @@ function MainContent() {
     return () => observer.disconnect();
   }, []);
 
-  const setSectionRef = useCallback((index: number) => (el: HTMLElement | null) => {
-    sectionRefs.current[index] = el;
-  }, []);
+  const setSectionRef = useCallback(
+    (index: number) => (el: HTMLElement | null) => {
+      sectionRefs.current[index] = el;
+    },
+    [],
+  );
 
   const navigateTo = useCallback((index: number) => {
     sectionRefs.current[index]?.scrollIntoView({ behavior: 'smooth' });
@@ -232,7 +227,15 @@ function MainContent() {
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
             <svg width="20" height="32" viewBox="0 0 20 32" fill="none" className="text-white/20">
-              <rect x="1" y="1" width="18" height="30" rx="9" stroke="currentColor" strokeWidth="1.5" />
+              <rect
+                x="1"
+                y="1"
+                width="18"
+                height="30"
+                rx="9"
+                stroke="currentColor"
+                strokeWidth="1.5"
+              />
               <motion.circle
                 cx="10"
                 r="2"
@@ -263,33 +266,61 @@ function MainContent() {
         </SectionReveal>
 
         <div className="grid md:grid-cols-3 gap-4 max-w-5xl mb-6">
-          <ProjectCard
+          {/* <ProjectCard
             href="https://pertolo.iieo.de/drink"
             title="Drink"
             description="The ultimate party game. Challenges, rules, and drinks for your next get-together."
             delay={0.1}
-          />
+          /> */}
           <ProjectCard
             href="https://pertolo.iieo.de/imposter"
             title="Imposter"
             description="Find the secret agents. A social deduction game for groups."
+            delay={0.1}
+          />
+          <ProjectCard
+            href="https://pertolo.iieo.de/bluff"
+            title="Bluff"
+            description="Truth or made-up definition? Bluff your way to victory."
             delay={0.15}
           />
           <ProjectCard
+            href="https://pertolo.iieo.de/quiz"
+            title="Daily Maze"
+            description="Find the hidden path in the dark. A new puzzle every day."
+            delay={0.2}
+          />
+          <ProjectCard
+            href="https://pertolo.iieo.de/murderi"
+            title="Murderi"
+            description="Get your target before they get you. A real-world social game."
+            delay={0.25}
+          />
+          {/* <ProjectCard
             href="https://pertolo.iieo.de/bco-trainer"
             title="Trainer"
             description="Train your rhythm skills. A practice tool for musicians."
             delay={0.2}
-          />
+          /> */}
         </div>
+
+        <SectionReveal delay={0.3} className="mb-4">
+          <p className="text-white/20 text-xs font-sans tracking-[0.15em] uppercase mb-4">Tools</p>
+        </SectionReveal>
 
         <div className="max-w-5xl">
           <ProjectCard
+            href="/tools/qr-code-generator"
+            title="QR-Code Generator"
+            description="Anpassbare QR-Codes mit Logo, Farben und SVG-Export — komplett im Browser."
+            delay={0.35}
+          />
+          {/* <ProjectCard
             href="https://verein.iieo.de"
             title="Vereinsmanager"
             description="Club management made simple. Organize members, events, and your team — all in one place."
             delay={0.25}
-          />
+          /> */}
         </div>
       </section>
 

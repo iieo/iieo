@@ -33,9 +33,23 @@ const PRESETS: { label: string; fg: string; bg: string }[] = [
   { label: 'Invertiert', fg: '#ffffff', bg: '#000000' },
   { label: 'Indigo', fg: '#1e1b4b', bg: '#ffffff' },
   { label: 'Sand', fg: '#1c1917', bg: '#fafaf9' },
+  { label: 'Smaragd', fg: '#064e3b', bg: '#ecfdf5' },
+  { label: 'Burgund', fg: '#7f1d1d', bg: '#fef2f2' },
+  { label: 'Ozean', fg: '#0c4a6e', bg: '#f0f9ff' },
+];
+
+const DOT_STYLES: { value: DotType; label: string }[] = [
+  { value: 'square', label: 'Quadrat' },
+  { value: 'rounded', label: 'Abgerundet' },
+  { value: 'dots', label: 'Punkte' },
+  { value: 'classy', label: 'Klassisch' },
+  { value: 'classy-rounded', label: 'Klassisch rund' },
+  { value: 'extra-rounded', label: 'Extra rund' },
 ];
 
 const SIZE_PRESETS = [256, 512, 1024, 2048];
+const MIN_SIZE = 128;
+const MAX_SIZE = 4096;
 
 const INITIAL_STYLE: StyleState = {
   size: 512,
@@ -49,9 +63,9 @@ const INITIAL_STYLE: StyleState = {
   hideBackgroundDots: true,
 };
 
-const labelClass = 'block text-white/40 text-xs font-sans tracking-wider uppercase mb-1.5';
+const labelClass = 'block text-white/55 text-xs font-sans tracking-wider uppercase mb-1.5';
 const inputClass =
-  'w-full bg-white/[0.02] border border-white/10 rounded-lg px-3 py-2.5 text-white text-sm font-sans focus:outline-none focus:border-white/30 transition-colors';
+  'w-full bg-white/[0.03] border border-white/20 rounded-lg px-3 py-2.5 text-white text-sm font-sans focus:outline-none focus:border-white/40 transition-colors';
 const buttonClass =
   'px-4 py-2.5 text-sm font-sans rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
 
@@ -68,6 +82,7 @@ export default function QrGenerator() {
   const [contentType, setContentType] = useState<ContentType>('url');
   const [content, setContent] = useState<ContentState>(INITIAL_CONTENT);
   const [style, setStyle] = useState<StyleState>(INITIAL_STYLE);
+  const [sizeInput, setSizeInput] = useState<string>(String(INITIAL_STYLE.size));
   const [toast, setToast] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -148,6 +163,20 @@ export default function QrGenerator() {
     [],
   );
 
+  const commitSize = useCallback(
+    (raw: string) => {
+      const parsed = Number.parseInt(raw, 10);
+      if (Number.isNaN(parsed)) {
+        setSizeInput(String(style.size));
+        return;
+      }
+      const clamped = Math.min(MAX_SIZE, Math.max(MIN_SIZE, parsed));
+      setStyle((s) => ({ ...s, size: clamped }));
+      setSizeInput(String(clamped));
+    },
+    [style.size],
+  );
+
   const handleLogoUpload = useCallback(
     (file: File) => {
       if (!['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp'].includes(file.type)) {
@@ -191,6 +220,7 @@ export default function QrGenerator() {
     setStyle(INITIAL_STYLE);
     setContent(INITIAL_CONTENT);
     setContentType('url');
+    setSizeInput(String(INITIAL_STYLE.size));
     showToast('Zurückgesetzt.');
   }, [showToast]);
 
@@ -199,11 +229,11 @@ export default function QrGenerator() {
   return (
     <section className="px-6 sm:px-8 md:px-16 lg:px-24 pb-24 max-w-6xl mx-auto">
       <div className="mb-10">
-        <p className="text-white/30 text-xs font-sans tracking-[0.2em] uppercase mb-4">Tool</p>
+        <p className="text-white/45 text-xs font-sans tracking-[0.2em] uppercase mb-4">Tool</p>
         <h1 className="text-white text-4xl sm:text-5xl md:text-6xl leading-[0.95] mb-4">
           QR-Code Generator
         </h1>
-        <p className="text-white/40 font-sans text-base max-w-2xl">
+        <p className="text-white/55 font-sans text-base max-w-2xl">
           Erstelle anpassbare QR-Codes mit Logo. Alles passiert in deinem Browser — nichts wird
           hochgeladen.
         </p>
@@ -212,7 +242,7 @@ export default function QrGenerator() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-8">
         {/* Form column */}
         <div className="space-y-6">
-          <div className="border border-white/[0.08] rounded-2xl p-5 md:p-6 bg-white/[0.01] backdrop-blur-sm">
+          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
             <p className={labelClass}>Inhalt</p>
             <div className="flex flex-wrap gap-2 mb-5">
               {CONTENT_TYPES.map((t) => (
@@ -222,7 +252,7 @@ export default function QrGenerator() {
                   className={`px-3 py-1.5 text-xs font-sans rounded-full border transition-colors ${
                     contentType === t.value
                       ? 'bg-white text-black border-white'
-                      : 'border-white/15 text-white/60 hover:border-white/30 hover:text-white'
+                      : 'border-white/25 text-white/70 hover:border-white/40 hover:text-white'
                   }`}
                 >
                   {t.label}
@@ -232,38 +262,54 @@ export default function QrGenerator() {
             <ContentForm type={contentType} state={content} onChange={handleContentChange} />
           </div>
 
-          <div className="border border-white/[0.08] rounded-2xl p-5 md:p-6 bg-white/[0.01] backdrop-blur-sm">
+          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
             <div className="flex items-center justify-between mb-3">
               <p className={`${labelClass} mb-0`}>Größe</p>
-              <span className="text-white/60 text-sm font-sans">{style.size}px</span>
+              <span className="text-white/55 text-xs font-sans">
+                {MIN_SIZE}–{MAX_SIZE}px
+              </span>
             </div>
-            <input
-              type="range"
-              min={256}
-              max={2048}
-              step={16}
-              value={style.size}
-              onChange={(e) => setStyle((s) => ({ ...s, size: Number(e.target.value) }))}
-              className="w-full accent-white"
-            />
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 items-center">
+              <input
+                type="number"
+                inputMode="numeric"
+                min={MIN_SIZE}
+                max={MAX_SIZE}
+                step={16}
+                value={sizeInput}
+                onChange={(e) => setSizeInput(e.target.value)}
+                onBlur={(e) => commitSize(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    commitSize((e.target as HTMLInputElement).value);
+                    (e.target as HTMLInputElement).blur();
+                  }
+                }}
+                className={inputClass}
+              />
+              <span className="text-white/55 text-sm font-sans shrink-0">px</span>
+            </div>
+            <div className="grid grid-cols-4 gap-2 mt-3">
               {SIZE_PRESETS.map((px) => (
                 <button
                   key={px}
-                  onClick={() => setStyle((s) => ({ ...s, size: px }))}
-                  className={`${buttonClass} flex-1 ${
+                  onClick={() => {
+                    setStyle((s) => ({ ...s, size: px }));
+                    setSizeInput(String(px));
+                  }}
+                  className={`${buttonClass} ${
                     style.size === px
-                      ? 'bg-white/10 border-white/30 text-white'
-                      : 'border-white/10 text-white/50 hover:border-white/25'
+                      ? 'bg-white/15 border-white/40 text-white'
+                      : 'border-white/20 text-white/65 hover:border-white/35'
                   }`}
                 >
-                  {px}px
+                  {px}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="border border-white/[0.08] rounded-2xl p-5 md:p-6 bg-white/[0.01] backdrop-blur-sm">
+          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
             <p className={labelClass}>Logo (optional)</p>
             <LogoUploader
               dataUrl={style.logoDataUrl}
@@ -275,7 +321,7 @@ export default function QrGenerator() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <span className={`${labelClass} mb-0`}>Logo-Größe</span>
-                    <span className="text-white/60 text-sm font-sans">
+                    <span className="text-white/70 text-sm font-sans">
                       {Math.round(style.logoSize * 100)}%
                     </span>
                   </div>
@@ -298,7 +344,7 @@ export default function QrGenerator() {
                     }
                     className="accent-white"
                   />
-                  <span className="text-white/60 text-sm font-sans">
+                  <span className="text-white/70 text-sm font-sans">
                     Punkte hinter Logo ausblenden
                   </span>
                 </label>
@@ -311,7 +357,7 @@ export default function QrGenerator() {
             ) : null}
           </div>
 
-          <div className="border border-white/[0.08] rounded-2xl p-5 md:p-6 bg-white/[0.01] backdrop-blur-sm space-y-4">
+          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm space-y-5">
             <p className={labelClass}>Stil</p>
 
             <div className="grid grid-cols-2 gap-3">
@@ -332,10 +378,10 @@ export default function QrGenerator() {
                 <button
                   key={p.label}
                   onClick={() => setStyle((s) => ({ ...s, fgColor: p.fg, bgColor: p.bg }))}
-                  className="px-3 py-1.5 text-xs font-sans rounded-full border border-white/10 text-white/60 hover:border-white/30 hover:text-white transition-colors flex items-center gap-2"
+                  className="px-3 py-1.5 text-xs font-sans rounded-full border border-white/20 text-white/70 hover:border-white/40 hover:text-white transition-colors flex items-center gap-2"
                 >
                   <span
-                    className="w-3 h-3 rounded-full border border-white/20"
+                    className="w-3 h-3 rounded-full border border-white/25"
                     style={{ backgroundColor: p.fg }}
                   />
                   {p.label}
@@ -343,52 +389,53 @@ export default function QrGenerator() {
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={labelClass}>Punkt-Stil</label>
-                <select
-                  value={style.dotStyle}
-                  onChange={(e) => setStyle((s) => ({ ...s, dotStyle: e.target.value as DotType }))}
-                  className={inputClass}
-                >
-                  <option value="square">Quadratisch</option>
-                  <option value="rounded">Abgerundet</option>
-                  <option value="dots">Punkte</option>
-                  <option value="classy">Klassisch</option>
-                  <option value="classy-rounded">Klassisch rund</option>
-                  <option value="extra-rounded">Extra rund</option>
-                </select>
-              </div>
-              <div>
-                <label className={labelClass}>Ecken</label>
-                <select
-                  value={style.cornerStyle}
-                  onChange={(e) =>
-                    setStyle((s) => ({ ...s, cornerStyle: e.target.value as CornerSquareType }))
-                  }
-                  className={inputClass}
-                >
-                  <option value="square">Quadratisch</option>
-                  <option value="dot">Punkt</option>
-                  <option value="extra-rounded">Extra rund</option>
-                </select>
-              </div>
+            <div>
+              <label className={labelClass}>Punkt-Stil</label>
+              <DotStyleDropdown
+                value={style.dotStyle}
+                onChange={(v) => setStyle((s) => ({ ...s, dotStyle: v }))}
+                fgColor={style.fgColor}
+                bgColor={style.bgColor}
+              />
+            </div>
+
+            <div>
+              <label className={labelClass}>Ecken</label>
+              <select
+                value={style.cornerStyle}
+                onChange={(e) =>
+                  setStyle((s) => ({ ...s, cornerStyle: e.target.value as CornerSquareType }))
+                }
+                className={inputClass}
+              >
+                <option value="square">Quadratisch</option>
+                <option value="dot">Punkt</option>
+                <option value="extra-rounded">Extra rund</option>
+              </select>
             </div>
 
             <div>
               <label className={labelClass}>
                 Fehlerkorrektur
                 {style.logoDataUrl && (
-                  <span className="text-white/30 normal-case tracking-normal"> — auto: H</span>
+                  <span className="text-white/45 normal-case tracking-normal">
+                    {' '}
+                    — automatisch bei Logo
+                  </span>
                 )}
               </label>
               <select
-                value={style.errorCorrection}
+                value={style.logoDataUrl ? 'H' : style.errorCorrection}
                 disabled={!!style.logoDataUrl}
+                aria-disabled={!!style.logoDataUrl}
                 onChange={(e) =>
                   setStyle((s) => ({ ...s, errorCorrection: e.target.value as ErrorCorrection }))
                 }
-                className={inputClass}
+                className={`${inputClass} ${
+                  style.logoDataUrl
+                    ? 'opacity-50 cursor-not-allowed bg-white/[0.015] !border-white/10 !text-white/55'
+                    : ''
+                }`}
               >
                 <option value="L">L — niedrig (~7%)</option>
                 <option value="M">M — mittel (~15%)</option>
@@ -401,7 +448,7 @@ export default function QrGenerator() {
 
         {/* Preview column */}
         <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
-          <div className="border border-white/[0.08] rounded-2xl p-6 bg-white/[0.01] backdrop-blur-sm">
+          <div className="border border-white/[0.15] rounded-2xl p-6 bg-white/[0.02] backdrop-blur-sm">
             <div
               className="aspect-square w-full rounded-xl overflow-hidden flex items-center justify-center transition-colors"
               style={{ backgroundColor: style.bgColor }}
@@ -418,11 +465,7 @@ export default function QrGenerator() {
 
           <div>
             <p className={labelClass}>Format</p>
-            <div
-              role="radiogroup"
-              aria-label="Download-Format"
-              className="grid grid-cols-3 gap-2"
-            >
+            <div role="radiogroup" aria-label="Download-Format" className="grid grid-cols-3 gap-2">
               {(['png', 'svg', 'jpeg'] as const).map((fmt) => {
                 const active = downloadFormat === fmt;
                 return (
@@ -433,8 +476,8 @@ export default function QrGenerator() {
                     onClick={() => setDownloadFormat(fmt)}
                     className={`${buttonClass} ${
                       active
-                        ? 'bg-white/10 border-white/30 text-white'
-                        : 'border-white/10 text-white/50 hover:border-white/25'
+                        ? 'bg-white/15 border-white/40 text-white'
+                        : 'border-white/20 text-white/65 hover:border-white/35'
                     }`}
                   >
                     {fmt.toUpperCase()}
@@ -456,19 +499,19 @@ export default function QrGenerator() {
             <button
               onClick={handleCopyDataUrl}
               disabled={isContentEmpty}
-              className={`${buttonClass} border-white/15 text-white/70 hover:border-white/30 hover:text-white`}
+              className={`${buttonClass} border-white/25 text-white/75 hover:border-white/40 hover:text-white`}
             >
               Data-URL kopieren
             </button>
             <button
               onClick={handleReset}
-              className={`${buttonClass} border-white/15 text-white/70 hover:border-white/30 hover:text-white`}
+              className={`${buttonClass} border-white/25 text-white/75 hover:border-white/40 hover:text-white`}
             >
               Zurücksetzen
             </button>
           </div>
 
-          <p className="text-white/30 text-xs font-sans leading-relaxed">
+          <p className="text-white/45 text-xs font-sans leading-relaxed">
             Tipp: Teste den QR-Code vor dem Drucken mit deiner Smartphone-Kamera, besonders wenn du
             ein Logo eingefügt hast.
           </p>
@@ -481,6 +524,167 @@ export default function QrGenerator() {
         </div>
       )}
     </section>
+  );
+}
+
+function DotStyleDropdown({
+  value,
+  onChange,
+  fgColor,
+  bgColor,
+}: {
+  value: DotType;
+  onChange: (v: DotType) => void;
+  fgColor: string;
+  bgColor: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onDoc);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDoc);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  const current = DOT_STYLES.find((d) => d.value === value) ?? { value, label: value };
+
+  return (
+    <div ref={wrapRef} className="relative">
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((o) => !o)}
+        className={`${inputClass} flex items-center justify-between gap-2 cursor-pointer`}
+      >
+        <span className="flex items-center gap-2.5">
+          <DotStylePreview type={current.value} color={fgColor} bg={bgColor} />
+          <span>{current.label}</span>
+        </span>
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          className={`text-white/55 transition-transform ${open ? 'rotate-180' : ''}`}
+          aria-hidden
+        >
+          <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" />
+        </svg>
+      </button>
+      {open && (
+        <ul
+          role="listbox"
+          className="absolute z-20 mt-1.5 w-full rounded-lg border border-white/20 bg-[#0a0a0a] shadow-xl overflow-hidden"
+        >
+          {DOT_STYLES.map((d) => {
+            const active = d.value === value;
+            return (
+              <li key={d.value} role="option" aria-selected={active}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onChange(d.value);
+                    setOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 text-sm font-sans text-left transition-colors ${
+                    active
+                      ? 'bg-white/10 text-white'
+                      : 'text-white/75 hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <DotStylePreview type={d.value} color={fgColor} bg={bgColor} />
+                  <span>{d.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function roundedRectPath(
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  [tl, tr, br, bl]: [number, number, number, number],
+): string {
+  return [
+    `M${x + tl},${y}`,
+    `H${x + w - tr}`,
+    tr ? `A${tr},${tr} 0 0 1 ${x + w},${y + tr}` : '',
+    `V${y + h - br}`,
+    br ? `A${br},${br} 0 0 1 ${x + w - br},${y + h}` : '',
+    `H${x + bl}`,
+    bl ? `A${bl},${bl} 0 0 1 ${x},${y + h - bl}` : '',
+    `V${y + tl}`,
+    tl ? `A${tl},${tl} 0 0 1 ${x + tl},${y}` : '',
+    'Z',
+  ].join(' ');
+}
+
+function DotStylePreview({ type, color, bg }: { type: DotType; color: string; bg: string }) {
+  const pattern = [
+    [1, 0, 1, 1],
+    [0, 1, 1, 0],
+    [1, 1, 0, 1],
+    [1, 0, 1, 1],
+  ];
+  const size = 24;
+  const cell = size / 4;
+  const inner = cell - 1;
+  const half = inner / 2;
+
+  const renderCell = (x: number, y: number, key: string) => {
+    const px = x * cell + 0.5;
+    const py = y * cell + 0.5;
+    if (type === 'dots') {
+      return <circle key={key} cx={px + half} cy={py + half} r={half} fill={color} />;
+    }
+    if (type === 'square') {
+      return <rect key={key} x={px} y={py} width={inner} height={inner} fill={color} />;
+    }
+    if (type === 'rounded') {
+      const r = inner * 0.25;
+      return (
+        <rect key={key} x={px} y={py} width={inner} height={inner} rx={r} ry={r} fill={color} />
+      );
+    }
+    if (type === 'extra-rounded') {
+      const r = inner * 0.45;
+      return (
+        <rect key={key} x={px} y={py} width={inner} height={inner} rx={r} ry={r} fill={color} />
+      );
+    }
+    // classy & classy-rounded — only TL and BR corners rounded (leaf shape)
+    const r = type === 'classy' ? half : inner * 0.35;
+    return <path key={key} d={roundedRectPath(px, py, inner, inner, [r, 0, r, 0])} fill={color} />;
+  };
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      className="shrink-0 rounded-sm"
+      style={{ backgroundColor: bg }}
+      aria-hidden
+    >
+      {pattern.flatMap((row, y) => row.map((v, x) => (v ? renderCell(x, y, `${x}-${y}`) : null)))}
+    </svg>
   );
 }
 
@@ -501,7 +705,7 @@ function ColorField({
           type="color"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-10 rounded-lg border border-white/10 bg-transparent cursor-pointer shrink-0"
+          className="w-10 h-10 rounded-lg border border-white/20 bg-transparent cursor-pointer shrink-0"
         />
         <input
           type="text"
@@ -529,13 +733,13 @@ function LogoUploader({
   if (dataUrl) {
     return (
       <div className="flex items-center gap-4">
-        <div className="w-20 h-20 rounded-lg border border-white/10 bg-white/5 p-2 flex items-center justify-center shrink-0">
+        <div className="w-20 h-20 rounded-lg border border-white/20 bg-white/5 p-2 flex items-center justify-center shrink-0">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={dataUrl} alt="Logo Vorschau" className="max-w-full max-h-full object-contain" />
         </div>
         <button
           onClick={onRemove}
-          className={`${buttonClass} border-white/20 text-white/70 hover:border-white/40 hover:text-white`}
+          className={`${buttonClass} border-white/30 text-white/75 hover:border-white/50 hover:text-white`}
         >
           Entfernen
         </button>
@@ -559,12 +763,12 @@ function LogoUploader({
       onClick={() => inputRef.current?.click()}
       className={`border border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
         dragOver
-          ? 'border-white/40 bg-white/[0.03]'
-          : 'border-white/15 hover:border-white/30 hover:bg-white/[0.02]'
+          ? 'border-white/50 bg-white/[0.04]'
+          : 'border-white/25 hover:border-white/40 hover:bg-white/[0.03]'
       }`}
     >
-      <p className="text-white/60 text-sm font-sans">Bild ablegen oder klicken</p>
-      <p className="text-white/30 text-xs font-sans mt-1">PNG, JPEG, SVG, WebP — max 2 MB</p>
+      <p className="text-white/70 text-sm font-sans">Bild ablegen oder klicken</p>
+      <p className="text-white/45 text-xs font-sans mt-1">PNG, JPEG, SVG, WebP — max 2 MB</p>
       <input
         ref={inputRef}
         type="file"
