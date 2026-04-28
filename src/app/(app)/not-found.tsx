@@ -2,20 +2,10 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { useEffect } from 'react';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
-interface ErrorPageProps {
-  error: Error & { digest?: string };
-  reset: () => void;
-}
-
-export default function ErrorPage({ error, reset }: ErrorPageProps) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
-
+export default function NotFound() {
   return (
     <main className="min-h-dvh flex flex-col items-center justify-center px-6 sm:px-8 md:px-16 lg:px-24 bg-black text-white">
       <motion.p
@@ -24,7 +14,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease }}
       >
-        Error
+        Not found
       </motion.p>
 
       <motion.h1
@@ -33,7 +23,7 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.1, ease }}
       >
-        500
+        404
       </motion.h1>
 
       <motion.p
@@ -42,24 +32,15 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.25, ease }}
       >
-        Something went wrong on this page.
-        {error.digest && (
-          <span className="block text-white/20 text-xs mt-3 font-mono">{error.digest}</span>
-        )}
+        This page doesn&rsquo;t exist or has moved.
       </motion.p>
 
       <motion.div
-        className="mt-12 flex flex-wrap items-center justify-center gap-4 font-sans text-sm"
+        className="mt-12 font-sans text-sm"
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, delay: 0.4, ease }}
       >
-        <button
-          onClick={reset}
-          className="border border-white/[0.15] hover:border-white/40 hover:bg-white/[0.03] rounded-full px-6 py-2.5 text-white/70 hover:text-white transition-all duration-300"
-        >
-          Try again
-        </button>
         <Link
           href="/"
           className="border border-white/[0.15] hover:border-white/40 hover:bg-white/[0.03] rounded-full px-6 py-2.5 text-white/70 hover:text-white transition-all duration-300"

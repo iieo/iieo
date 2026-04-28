@@ -308,12 +308,18 @@ function MainContent() {
           <p className="text-white/20 text-xs font-sans tracking-[0.15em] uppercase mb-4">Tools</p>
         </SectionReveal>
 
-        <div className="max-w-5xl">
+        <div className="grid md:grid-cols-2 gap-4 max-w-5xl">
           <ProjectCard
             href="/tools/qr-code-generator"
             title="QR-Code Generator"
             description="Anpassbare QR-Codes mit Logo, Farben und SVG-Export — komplett im Browser."
             delay={0.35}
+          />
+          <ProjectCard
+            href="/tools/image-converter"
+            title="Image Converter"
+            description="Bilder konvertieren, komprimieren, zuschneiden und erweitern — PNG, JPEG, WEBP, ICO im Browser."
+            delay={0.4}
           />
           {/* <ProjectCard
             href="https://verein.iieo.de"

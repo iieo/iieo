@@ -13,6 +13,12 @@ const TOOLS = [
     description:
       'QR-Codes für Links, WiFi, vCards und mehr — mit Logo, eigenen Farben und Export als PNG/SVG.',
   },
+  {
+    href: '/tools/image-converter',
+    title: 'Image Converter',
+    description:
+      'Bilder konvertieren (PNG, JPEG, WEBP, ICO), komprimieren, zuschneiden und erweitern — komplett im Browser.',
+  },
 ] as const;
 
 function LetterPull({ text, delay = 0 }: { text: string; delay?: number }) {
