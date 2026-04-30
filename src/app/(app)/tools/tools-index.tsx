@@ -15,9 +15,9 @@ const TOOLS = [
   },
   {
     href: '/tools/image-converter',
-    title: 'Image Converter',
+    title: 'Image Converter & Paint',
     description:
-      'Bilder konvertieren (PNG, JPEG, WEBP, ICO), komprimieren, zuschneiden und erweitern — komplett im Browser.',
+      'Bilder konvertieren (PNG, JPEG, WEBP, ICO), komprimieren, zuschneiden, erweitern und bearbeiten — komplett im Browser.',
   },
 ] as const;
 
