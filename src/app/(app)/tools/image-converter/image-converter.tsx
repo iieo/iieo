@@ -1,11 +1,31 @@
 'use client';
 
+import { buttonClass, inputClass, labelClass } from '@/components/ui/class-names';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { NumberWithPresets } from '@/components/ui/number-with-presets';
+import { ToggleChip } from '@/components/ui/toggle-chip';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { encodeIco } from './ico-encoder';
+import {
+  MAX_PAINT_HISTORY,
+  PAINT_COLORS,
+  PAINT_OPACITY_PRESETS,
+  PAINT_SIZES,
+} from './paint/constants';
+import { PaintCanvas, type PaintSelection, type PaintTool } from './paint/paint-canvas';
 
-const PAINT_SIZES = [1, 2, 3, 4, 5, 8, 10, 12, 16, 20, 24, 32, 48, 64, 80, 120];
-const PAINT_OPACITY_PRESETS = [10, 25, 33, 50, 66, 75, 90, 100];
+const PAINT_TOOL_BUTTONS: ReadonlyArray<{ tool: PaintTool; label: string }> = [
+  { tool: 'brush', label: 'Pinsel' },
+  { tool: 'eraser', label: 'Radierer' },
+  { tool: 'bucket', label: 'Bucket' },
+  { tool: 'magic-wand', label: 'Zauberstab' },
+  { tool: 'picker', label: 'Farbwähler' },
+  { tool: 'select', label: 'Auswahl' },
+  { tool: 'box', label: 'Rechteck' },
+  { tool: 'circle', label: 'Kreis' },
+  { tool: 'line', label: 'Linie' },
+];
 
 type OutputFormat = 'png' | 'jpeg' | 'webp' | 'avif' | 'ico';
 
@@ -82,12 +102,6 @@ async function decodeHeic(file: File): Promise<Blob> {
 }
 
 const ICO_SIZES = [16, 32, 48];
-
-const labelClass = 'block text-white/65 text-xs font-sans tracking-wider uppercase mb-1.5';
-const inputClass =
-  'w-full bg-white/[0.03] border border-white/30 rounded-lg px-3 py-2.5 text-white text-sm font-sans focus:outline-none focus:border-white/40 transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0';
-const buttonClass =
-  'px-4 py-2.5 text-sm font-sans rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
 
 function useDebounced<T>(value: T, delay: number): T {
   const [v, setV] = useState(value);
@@ -362,680 +376,6 @@ function CropOverlay({ imgUrl, imgW, imgH, crop, onChange }: CropOverlayProps) {
     </div>
   );
 }
-
-interface NumberWithPresetsProps {
-  value: number;
-  onChange: (value: number) => void;
-  min: number;
-  max: number;
-  step?: number;
-  unit?: string;
-  presets: ReadonlyArray<number>;
-  presetsLabel: string;
-}
-
-function NumberWithPresets({
-  value,
-  onChange,
-  min,
-  max,
-  step = 1,
-  unit,
-  presets,
-  presetsLabel,
-}: NumberWithPresetsProps) {
-  return (
-    <div className="relative">
-      <input
-        type="number"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => {
-          const parsed = parseInt(e.target.value, 10);
-          onChange(clamp(Number.isNaN(parsed) ? min : parsed, min, max));
-        }}
-        className={
-          inputClass +
-          (unit ? ' pr-20' : ' pr-10') +
-          ' [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-inner-spin-button]:m-0'
-        }
-      />
-      {unit && (
-        <span className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2 text-white/75 text-xs font-sans">
-          {unit}
-        </span>
-      )}
-      <div className="absolute right-1 top-1/2 -translate-y-1/2 h-[calc(100%-8px)] flex items-center border-l border-white/25 pl-1">
-        <select
-          value=""
-          onChange={(e) => {
-            const v = parseInt(e.target.value, 10);
-            if (!Number.isNaN(v)) onChange(v);
-          }}
-          aria-label={presetsLabel}
-          className="appearance-none bg-transparent text-transparent w-7 h-full pl-1 pr-4 cursor-pointer focus:outline-none"
-        >
-          <option value="" disabled>
-            —
-          </option>
-          {presets.map((p) => (
-            <option key={p} value={p} className="bg-[#0a0a0a] text-white">
-              {p}
-              {unit ? ` ${unit}` : ''}
-            </option>
-          ))}
-        </select>
-        <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-white/75 text-xs">
-          ▾
-        </span>
-      </div>
-    </div>
-  );
-}
-
-type PaintTool =
-  | 'brush'
-  | 'eraser'
-  | 'bucket'
-  | 'picker'
-  | 'select'
-  | 'box'
-  | 'circle'
-  | 'line'
-  | 'magic-wand';
-
-interface PaintSelection {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  mask?: Uint8Array;
-}
-
-interface PaintCanvasProps {
-  imgUrl: string;
-  imgW: number;
-  imgH: number;
-  canvas: HTMLCanvasElement | null;
-  tool: PaintTool;
-  color: string;
-  size: number;
-  onStrokeStart: () => void;
-  onStrokeEnd: () => void;
-}
-
-function PaintCanvas({
-  imgUrl,
-  imgW,
-  imgH,
-  canvas,
-  tool,
-  color,
-  size,
-  onStrokeStart,
-  onStrokeEnd,
-  tolerance = 30,
-  fillShape = false,
-  opacity = 100,
-  selection,
-  onSelectionChange,
-  onColorPick,
-  srcImg,
-}: PaintCanvasProps & {
-  tolerance?: number;
-  fillShape?: boolean;
-  opacity?: number;
-  selection?: PaintSelection | null;
-  onSelectionChange?: (sel: PaintSelection | null) => void;
-  onColorPick?: (hex: string) => void;
-  srcImg?: HTMLImageElement | null;
-}) {
-  const wrapRef = useRef<HTMLDivElement>(null);
-  const drawingRef = useRef(false);
-  const lastPtRef = useRef<{ x: number; y: number } | null>(null);
-  const startPointRef = useRef<{ x: number; y: number } | null>(null);
-  const snapshotRef = useRef<ImageData | null>(null);
-  const strokeBufferRef = useRef<HTMLCanvasElement | null>(null);
-  const selOverlayRef = useRef<HTMLCanvasElement | null>(null);
-
-  useEffect(() => {
-    const wrap = wrapRef.current;
-    if (!wrap || !canvas) return;
-    canvas.style.position = 'absolute';
-    canvas.style.inset = '0';
-    canvas.style.width = '100%';
-    canvas.style.height = '100%';
-    canvas.style.touchAction = 'none';
-    canvas.style.cursor =
-      tool === 'picker' ? 'copy' : tool === 'select' ? 'crosshair' : 'crosshair';
-    wrap.appendChild(canvas);
-    return () => {
-      if (canvas.parentNode === wrap) wrap.removeChild(canvas);
-    };
-  }, [canvas, tool]);
-
-  const toCanvasCoords = useCallback(
-    (e: React.PointerEvent) => {
-      if (!canvas) return null;
-      const rect = canvas.getBoundingClientRect();
-      const x = ((e.clientX - rect.left) / rect.width) * canvas.width;
-      const y = ((e.clientY - rect.top) / rect.height) * canvas.height;
-      return { x, y };
-    },
-    [canvas],
-  );
-
-  const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? {
-          r: parseInt(result[1]!, 16),
-          g: parseInt(result[2]!, 16),
-          b: parseInt(result[3]!, 16),
-        }
-      : { r: 0, g: 0, b: 0 };
-  };
-
-  const floodFill = useCallback(
-    (startX: number, startY: number, fillColor: string) => {
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const w = canvas.width;
-      const h = canvas.height;
-      if (startX < 0 || startX >= w || startY < 0 || startY >= h) return;
-
-      const imageData = ctx.getImageData(0, 0, w, h);
-      const data = imageData.data;
-
-      const startIdx = (startY * w + startX) * 4;
-      const startR = data[startIdx]!;
-      const startG = data[startIdx + 1]!;
-      const startB = data[startIdx + 2]!;
-      const startA = data[startIdx + 3]!;
-
-      const fill = hexToRgb(fillColor);
-      if (
-        startR === fill.r &&
-        startG === fill.g &&
-        startB === fill.b &&
-        startA === 255 &&
-        tolerance === 0
-      ) {
-        return;
-      }
-
-      const visited = new Uint8Array(w * h);
-      const stack: number[] = [startY * w + startX];
-      const matches = (idx: number): boolean => {
-        const di = idx * 4;
-        return (
-          Math.abs(data[di]! - startR) <= tolerance &&
-          Math.abs(data[di + 1]! - startG) <= tolerance &&
-          Math.abs(data[di + 2]! - startB) <= tolerance &&
-          Math.abs(data[di + 3]! - startA) <= tolerance
-        );
-      };
-
-      while (stack.length > 0) {
-        const seed = stack.pop()!;
-        if (visited[seed]) continue;
-        let left = seed;
-        let right = seed;
-        const row = Math.floor(seed / w) * w;
-        while (left - 1 >= row && !visited[left - 1] && matches(left - 1)) left -= 1;
-        while (right + 1 < row + w && !visited[right + 1] && matches(right + 1)) right += 1;
-        for (let i = left; i <= right; i += 1) {
-          visited[i] = 1;
-          const di = i * 4;
-          data[di] = fill.r;
-          data[di + 1] = fill.g;
-          data[di + 2] = fill.b;
-          data[di + 3] = 255;
-          if (i - w >= 0 && !visited[i - w] && matches(i - w)) stack.push(i - w);
-          if (i + w < w * h && !visited[i + w] && matches(i + w)) stack.push(i + w);
-        }
-      }
-
-      ctx.putImageData(imageData, 0, 0);
-    },
-    [canvas, tolerance],
-  );
-
-  const magicWandSelect = useCallback(
-    (clickX: number, clickY: number): PaintSelection | null => {
-      if (!canvas) return null;
-      const w = canvas.width;
-      const h = canvas.height;
-      if (clickX < 0 || clickX >= w || clickY < 0 || clickY >= h) return null;
-
-      // Sample the composite of source + paint so the wand reacts to what
-      // the user actually sees, not just the (often empty) paint layer.
-      const tmp = document.createElement('canvas');
-      tmp.width = w;
-      tmp.height = h;
-      const tctx = tmp.getContext('2d');
-      if (!tctx) return null;
-      if (srcImg) tctx.drawImage(srcImg, 0, 0, w, h);
-      tctx.drawImage(canvas, 0, 0);
-      const data = tctx.getImageData(0, 0, w, h).data;
-
-      const ci = (clickY * w + clickX) * 4;
-      const cr = data[ci]!;
-      const cg = data[ci + 1]!;
-      const cb = data[ci + 2]!;
-      const ca = data[ci + 3]!;
-      const tol = tolerance;
-      const visited = new Uint8Array(w * h);
-      const stack: number[] = [clickY * w + clickX];
-      let minX = clickX;
-      let maxX = clickX;
-      let minY = clickY;
-      let maxY = clickY;
-
-      const matches = (idx: number): boolean => {
-        const di = idx * 4;
-        return (
-          Math.abs(data[di]! - cr) <= tol &&
-          Math.abs(data[di + 1]! - cg) <= tol &&
-          Math.abs(data[di + 2]! - cb) <= tol &&
-          Math.abs(data[di + 3]! - ca) <= tol
-        );
-      };
-
-      while (stack.length > 0) {
-        const seed = stack.pop()!;
-        if (visited[seed]) continue;
-        const row = Math.floor(seed / w);
-        const rowStart = row * w;
-        let left = seed;
-        let right = seed;
-        while (left - 1 >= rowStart && !visited[left - 1] && matches(left - 1)) left -= 1;
-        while (right + 1 < rowStart + w && !visited[right + 1] && matches(right + 1)) right += 1;
-        if (left - rowStart < minX) minX = left - rowStart;
-        if (right - rowStart > maxX) maxX = right - rowStart;
-        if (row < minY) minY = row;
-        if (row > maxY) maxY = row;
-        for (let i = left; i <= right; i += 1) {
-          visited[i] = 1;
-          if (i - w >= 0 && !visited[i - w] && matches(i - w)) stack.push(i - w);
-          if (i + w < w * h && !visited[i + w] && matches(i + w)) stack.push(i + w);
-        }
-      }
-
-      const bw = maxX - minX + 1;
-      const bh = maxY - minY + 1;
-      const mask = new Uint8Array(bw * bh);
-      for (let y = 0; y < bh; y += 1) {
-        const srcRow = (minY + y) * w + minX;
-        const dstRow = y * bw;
-        for (let x = 0; x < bw; x += 1) {
-          if (visited[srcRow + x]) mask[dstRow + x] = 1;
-        }
-      }
-      return { x: minX, y: minY, w: bw, h: bh, mask };
-    },
-    [canvas, tolerance, srcImg],
-  );
-
-  const ensureStrokeBuffer = useCallback((): HTMLCanvasElement | null => {
-    if (!canvas) return null;
-    let buf = strokeBufferRef.current;
-    if (!buf || buf.width !== canvas.width || buf.height !== canvas.height) {
-      buf = document.createElement('canvas');
-      buf.width = canvas.width;
-      buf.height = canvas.height;
-      strokeBufferRef.current = buf;
-    } else {
-      const bctx = buf.getContext('2d');
-      bctx?.clearRect(0, 0, buf.width, buf.height);
-    }
-    return buf;
-  }, [canvas]);
-
-  const fillSelection = useCallback(
-    (sel: PaintSelection, fillColor: string) => {
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const x = Math.max(0, Math.floor(sel.x));
-      const y = Math.max(0, Math.floor(sel.y));
-      const w = Math.min(canvas.width - x, Math.floor(sel.w));
-      const h = Math.min(canvas.height - y, Math.floor(sel.h));
-      if (w <= 0 || h <= 0) return;
-      const fill = hexToRgb(fillColor);
-      if (sel.mask) {
-        const id = ctx.getImageData(x, y, w, h);
-        const m = sel.mask;
-        const stride = sel.w;
-        for (let row = 0; row < h; row += 1) {
-          for (let col = 0; col < w; col += 1) {
-            if (m[row * stride + col]) {
-              const di = (row * w + col) * 4;
-              id.data[di] = fill.r;
-              id.data[di + 1] = fill.g;
-              id.data[di + 2] = fill.b;
-              id.data[di + 3] = 255;
-            }
-          }
-        }
-        ctx.putImageData(id, x, y);
-      } else {
-        ctx.save();
-        ctx.fillStyle = fillColor;
-        ctx.fillRect(x, y, w, h);
-        ctx.restore();
-      }
-    },
-    [canvas],
-  );
-
-  const compositeStroke = useCallback(() => {
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const buf = strokeBufferRef.current;
-    const snap = snapshotRef.current;
-    if (!ctx || !buf) return;
-    if (snap) ctx.putImageData(snap, 0, 0);
-    ctx.save();
-    ctx.globalAlpha = opacity / 100;
-    ctx.globalCompositeOperation = tool === 'eraser' ? 'destination-out' : 'source-over';
-    ctx.drawImage(buf, 0, 0);
-    ctx.restore();
-  }, [canvas, opacity, tool]);
-
-  const drawSegmentToBuffer = useCallback(
-    (from: { x: number; y: number }, to: { x: number; y: number }) => {
-      const buf = strokeBufferRef.current;
-      if (!buf) return;
-      const bctx = buf.getContext('2d');
-      if (!bctx) return;
-      bctx.lineCap = 'round';
-      bctx.lineJoin = 'round';
-      bctx.lineWidth = size;
-      bctx.strokeStyle = tool === 'eraser' ? '#000' : color;
-      bctx.beginPath();
-      if (from.x === to.x && from.y === to.y) {
-        // Dot — draw a filled circle so a single tap is visible.
-        bctx.fillStyle = tool === 'eraser' ? '#000' : color;
-        bctx.arc(from.x, from.y, size / 2, 0, Math.PI * 2);
-        bctx.fill();
-      } else {
-        bctx.moveTo(from.x, from.y);
-        bctx.lineTo(to.x, to.y);
-        bctx.stroke();
-      }
-    },
-    [color, size, tool],
-  );
-
-  const drawShape = useCallback(
-    (start: { x: number; y: number }, end: { x: number; y: number }, filled: boolean) => {
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) return;
-      const snap = snapshotRef.current;
-      if (snap) ctx.putImageData(snap, 0, 0);
-
-      ctx.save();
-      ctx.globalAlpha = opacity / 100;
-      ctx.lineWidth = size;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (tool === 'eraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.strokeStyle = '#000';
-        ctx.fillStyle = '#000';
-      } else {
-        ctx.globalCompositeOperation = 'source-over';
-        ctx.strokeStyle = color;
-        ctx.fillStyle = color;
-      }
-
-      const x = Math.min(start.x, end.x);
-      const y = Math.min(start.y, end.y);
-      const width = Math.abs(end.x - start.x);
-      const height = Math.abs(end.y - start.y);
-
-      if (tool === 'box') {
-        if (filled) ctx.fillRect(x, y, width, height);
-        else ctx.strokeRect(x, y, width, height);
-      } else if (tool === 'circle') {
-        const cx = (start.x + end.x) / 2;
-        const cy = (start.y + end.y) / 2;
-        const rx = width / 2;
-        const ry = height / 2;
-        ctx.beginPath();
-        ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-        if (filled) ctx.fill();
-        else ctx.stroke();
-      } else if (tool === 'line') {
-        ctx.beginPath();
-        ctx.moveTo(start.x, start.y);
-        ctx.lineTo(end.x, end.y);
-        ctx.stroke();
-      }
-
-      ctx.restore();
-    },
-    [canvas, color, size, tool, opacity],
-  );
-
-  const snapshotCanvas = useCallback(() => {
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    snapshotRef.current = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  }, [canvas]);
-
-  const onPointerDown = useCallback(
-    (e: React.PointerEvent) => {
-      const pt = toCanvasCoords(e);
-      if (!pt) return;
-
-      if (tool === 'bucket') {
-        onStrokeStart();
-        if (selection) {
-          fillSelection(selection, color);
-        } else {
-          floodFill(Math.floor(pt.x), Math.floor(pt.y), color);
-        }
-        onStrokeEnd();
-        return;
-      }
-
-      if (tool === 'picker') {
-        if (!canvas) return;
-        const px = Math.floor(pt.x);
-        const py = Math.floor(pt.y);
-        // Composite source + paint so the picker sees what the user sees.
-        const tmp = document.createElement('canvas');
-        tmp.width = canvas.width;
-        tmp.height = canvas.height;
-        const tctx = tmp.getContext('2d');
-        if (!tctx) return;
-        if (srcImg) tctx.drawImage(srcImg, 0, 0, canvas.width, canvas.height);
-        tctx.drawImage(canvas, 0, 0);
-        const data = tctx.getImageData(px, py, 1, 1).data;
-        const hex = `#${((data[0]! << 16) | (data[1]! << 8) | data[2]!)
-          .toString(16)
-          .padStart(6, '0')}`;
-        onColorPick?.(hex);
-        return;
-      }
-
-      if (tool === 'magic-wand') {
-        const sel = magicWandSelect(Math.floor(pt.x), Math.floor(pt.y));
-        onSelectionChange?.(sel);
-        return;
-      }
-
-      if (tool === 'select') {
-        (e.target as Element).setPointerCapture(e.pointerId);
-        startPointRef.current = pt;
-        drawingRef.current = true;
-        return;
-      }
-
-      (e.target as Element).setPointerCapture(e.pointerId);
-      drawingRef.current = true;
-      lastPtRef.current = pt;
-      startPointRef.current = pt;
-      onStrokeStart();
-      snapshotCanvas();
-
-      if (tool === 'brush' || tool === 'eraser') {
-        ensureStrokeBuffer();
-        drawSegmentToBuffer(pt, pt);
-        compositeStroke();
-      }
-    },
-    [
-      tool,
-      color,
-      onStrokeStart,
-      onStrokeEnd,
-      onColorPick,
-      onSelectionChange,
-      toCanvasCoords,
-      floodFill,
-      fillSelection,
-      selection,
-      magicWandSelect,
-      canvas,
-      srcImg,
-      snapshotCanvas,
-      ensureStrokeBuffer,
-      drawSegmentToBuffer,
-      compositeStroke,
-    ],
-  );
-
-  const onPointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      const pt = toCanvasCoords(e);
-      if (!pt) return;
-
-      if (drawingRef.current) {
-        if (tool === 'brush' || tool === 'eraser') {
-          const last = lastPtRef.current;
-          if (!last) return;
-          drawSegmentToBuffer(last, pt);
-          compositeStroke();
-          lastPtRef.current = pt;
-        } else if (tool === 'box' || tool === 'circle' || tool === 'line') {
-          const start = startPointRef.current;
-          if (start) drawShape(start, pt, fillShape);
-        } else if (tool === 'select') {
-          const start = startPointRef.current;
-          if (!start) return;
-          const x = Math.min(start.x, pt.x);
-          const y = Math.min(start.y, pt.y);
-          const w = Math.abs(pt.x - start.x);
-          const h = Math.abs(pt.y - start.y);
-          onSelectionChange?.({ x, y, w, h });
-        }
-      }
-    },
-    [
-      tool,
-      drawSegmentToBuffer,
-      compositeStroke,
-      drawShape,
-      onSelectionChange,
-      toCanvasCoords,
-      fillShape,
-    ],
-  );
-
-  const onPointerUp = useCallback(() => {
-    if (drawingRef.current) {
-      drawingRef.current = false;
-      lastPtRef.current = null;
-      // Buffer + snapshot have already been composited onto the canvas via
-      // compositeStroke / drawShape; nothing more to do here.
-      snapshotRef.current = null;
-      onStrokeEnd();
-    }
-    startPointRef.current = null;
-  }, [onStrokeEnd]);
-
-  const aspectStyle = useMemo(() => ({ aspectRatio: `${imgW} / ${imgH}` }), [imgW, imgH]);
-
-  useEffect(() => {
-    const c = selOverlayRef.current;
-    if (!c) return;
-    if (!selection?.mask) {
-      const ctx = c.getContext('2d');
-      ctx?.clearRect(0, 0, c.width, c.height);
-      return;
-    }
-    if (c.width !== selection.w) c.width = selection.w;
-    if (c.height !== selection.h) c.height = selection.h;
-    const ctx = c.getContext('2d');
-    if (!ctx) return;
-    ctx.clearRect(0, 0, c.width, c.height);
-    const id = ctx.createImageData(selection.w, selection.h);
-    const m = selection.mask;
-    for (let i = 0; i < m.length; i += 1) {
-      if (m[i]) {
-        const di = i * 4;
-        id.data[di] = 255;
-        id.data[di + 1] = 255;
-        id.data[di + 2] = 255;
-        id.data[di + 3] = 96;
-      }
-    }
-    ctx.putImageData(id, 0, 0);
-  }, [selection]);
-
-  return (
-    <div
-      ref={wrapRef}
-      className="relative w-full max-w-full bg-[#0a0a0a] border border-white/30 rounded-lg overflow-hidden select-none"
-      style={aspectStyle}
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-    >
-      <img
-        src={imgUrl}
-        alt=""
-        className="absolute inset-0 w-full h-full object-fill pointer-events-none"
-      />
-      {selection?.mask ? (
-        <canvas
-          ref={selOverlayRef}
-          className="absolute pointer-events-none border border-dashed border-white/85"
-          style={{
-            left: `${(selection.x / imgW) * 100}%`,
-            top: `${(selection.y / imgH) * 100}%`,
-            width: `${(selection.w / imgW) * 100}%`,
-            height: `${(selection.h / imgH) * 100}%`,
-            imageRendering: 'pixelated',
-          }}
-        />
-      ) : selection ? (
-        <div
-          className="absolute border-2 border-dashed border-white/85 bg-white/10"
-          style={{
-            left: `${(selection.x / imgW) * 100}%`,
-            top: `${(selection.y / imgH) * 100}%`,
-            width: `${(selection.w / imgW) * 100}%`,
-            height: `${(selection.h / imgH) * 100}%`,
-          }}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-const PAINT_COLORS = ['#ffffff', '#000000', '#ff3366', '#ffb800', '#34d399', '#3b82f6', '#a855f7'];
-const MAX_PAINT_HISTORY = 25;
 
 export default function ImageConverter() {
   const [source, setSource] = useState<SourceImage | null>(null);
@@ -1598,155 +938,29 @@ export default function ImageConverter() {
             </div>
             {activeTab === 'paint' && (
               <>
-                <button
-                  type="button"
-                  onClick={() => setPaintFullscreen((v) => !v)}
-                  className={`${buttonClass} ${
-                    paintFullscreen
-                      ? 'border-white/40 bg-white/10 text-white'
-                      : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                  }`}
-                  aria-pressed={paintFullscreen}
-                >
+                <ToggleChip active={paintFullscreen} onClick={() => setPaintFullscreen((v) => !v)}>
                   {paintFullscreen ? '✕ Vollbild verlassen' : '⤢ Vollbild'}
-                </button>
+                </ToggleChip>
                 <div>
                   <label className={labelClass}>Werkzeug</label>
                   <div className="grid grid-cols-3 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('brush')}
-                      className={`${buttonClass} ${
-                        paintTool === 'brush'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Pinsel
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('eraser')}
-                      className={`${buttonClass} ${
-                        paintTool === 'eraser'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Radierer
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('bucket')}
-                      className={`${buttonClass} ${
-                        paintTool === 'bucket'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Bucket
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('magic-wand')}
-                      className={`${buttonClass} ${
-                        paintTool === 'magic-wand'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Zauberstab
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('picker')}
-                      className={`${buttonClass} ${
-                        paintTool === 'picker'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Farbwähler
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('select')}
-                      className={`${buttonClass} ${
-                        paintTool === 'select'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Auswahl
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('box')}
-                      className={`${buttonClass} ${
-                        paintTool === 'box'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Rechteck
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('circle')}
-                      className={`${buttonClass} ${
-                        paintTool === 'circle'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Kreis
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setPaintTool('line')}
-                      className={`${buttonClass} ${
-                        paintTool === 'line'
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      Linie
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <label className={labelClass}>Farbe</label>
-                  <div className="flex flex-wrap gap-2 mb-3">
-                    {PAINT_COLORS.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => setPaintColor(c)}
-                        aria-label={c}
-                        className={`w-8 h-8 rounded-full border transition-transform ${
-                          paintColor.toLowerCase() === c.toLowerCase()
-                            ? 'border-white scale-110'
-                            : 'border-white/30'
-                        }`}
-                        style={{ backgroundColor: c }}
-                      />
+                    {PAINT_TOOL_BUTTONS.map(({ tool, label }) => (
+                      <ToggleChip
+                        key={tool}
+                        active={paintTool === tool}
+                        onClick={() => setPaintTool(tool)}
+                      >
+                        {label}
+                      </ToggleChip>
                     ))}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="color"
-                      value={paintColor}
-                      onChange={(e) => setPaintColor(e.target.value)}
-                      className="w-10 h-10 rounded border border-white/25 bg-transparent cursor-pointer"
-                    />
-                    <input
-                      type="text"
-                      value={paintColor}
-                      onChange={(e) => setPaintColor(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
                 </div>
+                <ColorPicker
+                  label="Farbe"
+                  value={paintColor}
+                  onChange={setPaintColor}
+                  swatches={PAINT_COLORS}
+                />
                 <div>
                   <label className={labelClass}>Pinselgröße</label>
                   <NumberWithPresets
@@ -1778,18 +992,9 @@ export default function ImageConverter() {
                   </div>
                 )}
                 {(paintTool === 'box' || paintTool === 'circle') && (
-                  <button
-                    type="button"
-                    onClick={() => setPaintFillShape((v) => !v)}
-                    aria-pressed={paintFillShape}
-                    className={`${buttonClass} ${
-                      paintFillShape
-                        ? 'border-white/40 bg-white/10 text-white'
-                        : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                    }`}
-                  >
+                  <ToggleChip active={paintFillShape} onClick={() => setPaintFillShape((v) => !v)}>
                     {paintFillShape ? '■ Form gefüllt' : '□ Nur Kontur'}
-                  </button>
+                  </ToggleChip>
                 )}
                 {(paintTool === 'bucket' || paintTool === 'magic-wand') && (
                   <div>
@@ -1835,24 +1040,14 @@ export default function ImageConverter() {
                     {FORMATS.map((f) => {
                       const disabled = f.value === 'avif' && !avifSupported;
                       return (
-                        <button
+                        <ToggleChip
                           key={f.value}
-                          type="button"
+                          active={format === f.value}
                           disabled={disabled}
-                          title={
-                            disabled
-                              ? 'AVIF-Encoding wird vom Browser nicht unterstützt'
-                              : undefined
-                          }
                           onClick={() => setFormat(f.value)}
-                          className={`${buttonClass} ${
-                            format === f.value
-                              ? 'border-white/40 bg-white/10 text-white'
-                              : 'border-white/25 text-white/80 hover:bg-white/[0.04]'
-                          }`}
                         >
                           {f.label}
-                        </button>
+                        </ToggleChip>
                       );
                     })}
                   </div>
