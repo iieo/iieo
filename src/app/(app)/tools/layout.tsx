@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Footer } from '@/components/footer';
 
 export default function ToolsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -18,6 +19,7 @@ export default function ToolsLayout({ children }: { children: React.ReactNode })
         </Link>
       </header>
       <div className="pt-20">{children}</div>
+      <Footer />
     </main>
   );
 }
