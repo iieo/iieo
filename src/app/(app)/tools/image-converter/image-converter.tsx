@@ -1,8 +1,31 @@
 'use client';
 
+import { buttonClass, inputClass, labelClass } from '@/components/ui/class-names';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { NumberWithPresets } from '@/components/ui/number-with-presets';
+import { ToggleChip } from '@/components/ui/toggle-chip';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { encodeIco } from './ico-encoder';
+import {
+  MAX_PAINT_HISTORY,
+  PAINT_COLORS,
+  PAINT_OPACITY_PRESETS,
+  PAINT_SIZES,
+} from './paint/constants';
+import { PaintCanvas, type PaintSelection, type PaintTool } from './paint/paint-canvas';
+
+const PAINT_TOOL_BUTTONS: ReadonlyArray<{ tool: PaintTool; label: string }> = [
+  { tool: 'brush', label: 'Pinsel' },
+  { tool: 'eraser', label: 'Radierer' },
+  { tool: 'bucket', label: 'Bucket' },
+  { tool: 'magic-wand', label: 'Zauberstab' },
+  { tool: 'picker', label: 'Farbwähler' },
+  { tool: 'select', label: 'Auswahl' },
+  { tool: 'box', label: 'Rechteck' },
+  { tool: 'circle', label: 'Kreis' },
+  { tool: 'line', label: 'Linie' },
+];
 
 type OutputFormat = 'png' | 'jpeg' | 'webp' | 'avif' | 'ico';
 
@@ -80,12 +103,6 @@ async function decodeHeic(file: File): Promise<Blob> {
 
 const ICO_SIZES = [16, 32, 48];
 
-const labelClass = 'block text-white/55 text-xs font-sans tracking-wider uppercase mb-1.5';
-const inputClass =
-  'w-full bg-white/[0.03] border border-white/20 rounded-lg px-3 py-2.5 text-white text-sm font-sans focus:outline-none focus:border-white/40 transition-colors';
-const buttonClass =
-  'px-4 py-2.5 text-sm font-sans rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
-
 function useDebounced<T>(value: T, delay: number): T {
   const [v, setV] = useState(value);
   useEffect(() => {
@@ -133,6 +150,7 @@ function rotatedSize(w: number, h: number, rot: number): { width: number; height
 function drawTransformed(
   ctx: CanvasRenderingContext2D,
   src: HTMLImageElement,
+  paint: HTMLCanvasElement | null,
   rotation: number,
   flipH: boolean,
   flipV: boolean,
@@ -143,11 +161,13 @@ function drawTransformed(
   ctx.rotate((rotation * Math.PI) / 180);
   ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
   ctx.drawImage(src, -src.width / 2, -src.height / 2);
+  if (paint) ctx.drawImage(paint, -src.width / 2, -src.height / 2);
   ctx.restore();
 }
 
 interface RenderOptions {
   src: HTMLImageElement;
+  paint: HTMLCanvasElement | null;
   rotation: number;
   flipH: boolean;
   flipV: boolean;
@@ -157,7 +177,7 @@ interface RenderOptions {
 }
 
 function renderToCanvas(opts: RenderOptions): HTMLCanvasElement {
-  const { src, rotation, flipH, flipV, crop, resize, extend } = opts;
+  const { src, paint, rotation, flipH, flipV, crop, resize, extend } = opts;
 
   const transformed = document.createElement('canvas');
   const t = rotatedSize(src.width, src.height, rotation);
@@ -165,7 +185,7 @@ function renderToCanvas(opts: RenderOptions): HTMLCanvasElement {
   transformed.height = t.height;
   const tctx = transformed.getContext('2d');
   if (!tctx) throw new Error('Canvas context fehlgeschlagen');
-  drawTransformed(tctx, src, rotation, flipH, flipV);
+  drawTransformed(tctx, src, paint, rotation, flipH, flipV);
 
   const cx = Math.max(0, Math.round(crop.x * t.width));
   const cy = Math.max(0, Math.round(crop.y * t.height));
@@ -316,7 +336,7 @@ function CropOverlay({ imgUrl, imgW, imgH, crop, onChange }: CropOverlayProps) {
   return (
     <div
       ref={containerRef}
-      className="relative w-full max-w-full bg-[#0a0a0a] border border-white/10 rounded-lg overflow-hidden select-none"
+      className="relative w-full max-w-full bg-[#0a0a0a] border border-white/20 rounded-lg overflow-hidden select-none"
       style={aspectStyle}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
@@ -382,6 +402,20 @@ export default function ImageConverter() {
   const [quality, setQuality] = useState(0.92);
   const [avifSupported, setAvifSupported] = useState(false);
 
+  const [activeTab, setActiveTab] = useState<'edit' | 'paint'>('edit');
+  const paintCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const paintHistoryRef = useRef<ImageData[]>([]);
+  const [paintTool, setPaintTool] = useState<PaintTool>('brush');
+  const [paintColor, setPaintColor] = useState<string>('#ff3366');
+  const [paintSize, setPaintSize] = useState<number>(8);
+  const [paintVersion, setPaintVersion] = useState(0);
+  const [paintCanUndo, setPaintCanUndo] = useState(false);
+  const [paintTolerance, setPaintTolerance] = useState<number>(30);
+  const [paintFillShape, setPaintFillShape] = useState(false);
+  const [paintOpacity, setPaintOpacity] = useState<number>(100);
+  const [paintSelection, setPaintSelection] = useState<PaintSelection | null>(null);
+  const [paintFullscreen, setPaintFullscreen] = useState<boolean>(false);
+
   useEffect(() => {
     let alive = true;
     isAvifEncodeSupported().then((ok) => {
@@ -431,6 +465,14 @@ export default function ImageConverter() {
       setCrop({ x: 0, y: 0, w: 1, h: 1 });
       setResize({ width: tw, height: th, lockAspect: true });
       setExtend({ top: 0, right: 0, bottom: 0, left: 0, color: '#ffffff', transparent: true });
+
+      const pc = document.createElement('canvas');
+      pc.width = tw;
+      pc.height = th;
+      paintCanvasRef.current = pc;
+      paintHistoryRef.current = [];
+      setPaintCanUndo(false);
+      setPaintVersion((v) => v + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bild konnte nicht geladen werden');
     }
@@ -492,9 +534,72 @@ export default function ImageConverter() {
   );
 
   const debouncedRender = useDebounced(
-    { source, rotation, flipH, flipV, crop, resize, extend, format, quality },
+    { source, rotation, flipH, flipV, crop, resize, extend, format, quality, paintVersion },
     150,
   );
+
+  const onPaintStrokeStart = useCallback(() => {
+    const pc = paintCanvasRef.current;
+    if (!pc) return;
+    const ctx = pc.getContext('2d');
+    if (!ctx) return;
+    try {
+      const snap = ctx.getImageData(0, 0, pc.width, pc.height);
+      const hist = paintHistoryRef.current;
+      hist.push(snap);
+      if (hist.length > MAX_PAINT_HISTORY) hist.shift();
+      setPaintCanUndo(true);
+    } catch {
+      // ignore — tainted or oversized
+    }
+  }, []);
+
+  const onPaintStrokeEnd = useCallback(() => {
+    setPaintVersion((v) => v + 1);
+  }, []);
+
+  const onPaintUndo = useCallback(() => {
+    const pc = paintCanvasRef.current;
+    const hist = paintHistoryRef.current;
+    if (!pc || hist.length === 0) return;
+    const ctx = pc.getContext('2d');
+    if (!ctx) return;
+    const snap = hist.pop();
+    if (snap) ctx.putImageData(snap, 0, 0);
+    setPaintCanUndo(hist.length > 0);
+    setPaintVersion((v) => v + 1);
+  }, []);
+
+  const onPaintClear = useCallback(() => {
+    const pc = paintCanvasRef.current;
+    if (!pc) return;
+    const ctx = pc.getContext('2d');
+    if (!ctx) return;
+    if (paintSelection) {
+      onPaintStrokeStart();
+      if (paintSelection.mask) {
+        const id = ctx.getImageData(
+          paintSelection.x,
+          paintSelection.y,
+          paintSelection.w,
+          paintSelection.h,
+        );
+        const m = paintSelection.mask;
+        for (let i = 0; i < m.length; i += 1) {
+          if (m[i]) id.data[i * 4 + 3] = 0;
+        }
+        ctx.putImageData(id, paintSelection.x, paintSelection.y);
+      } else {
+        ctx.clearRect(paintSelection.x, paintSelection.y, paintSelection.w, paintSelection.h);
+      }
+      setPaintSelection(null);
+      setPaintVersion((v) => v + 1);
+    } else {
+      onPaintStrokeStart();
+      ctx.clearRect(0, 0, pc.width, pc.height);
+      setPaintVersion((v) => v + 1);
+    }
+  }, [onPaintStrokeStart, paintSelection]);
 
   useEffect(() => {
     let cancelled = false;
@@ -509,6 +614,7 @@ export default function ImageConverter() {
       try {
         const canvas = renderToCanvas({
           src: src.el,
+          paint: paintCanvasRef.current,
           rotation: debouncedRender.rotation,
           flipH: debouncedRender.flipH,
           flipV: debouncedRender.flipV,
@@ -540,6 +646,26 @@ export default function ImageConverter() {
   }, [debouncedRender]);
 
   useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (activeTab !== 'paint') return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        onPaintUndo();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        setPaintVersion((v) => v + 1);
+      }
+      if (e.key === 'Escape') {
+        setPaintSelection(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeTab, onPaintUndo]);
+
+  useEffect(() => {
     return () => {
       if (sourceUrl) URL.revokeObjectURL(sourceUrl);
       if (previewUrl) URL.revokeObjectURL(previewUrl);
@@ -557,6 +683,7 @@ export default function ImageConverter() {
     try {
       const canvas = renderToCanvas({
         src: source.el,
+        paint: paintCanvasRef.current,
         rotation,
         flipH,
         flipV,
@@ -596,6 +723,7 @@ export default function ImageConverter() {
     try {
       const canvas = renderToCanvas({
         src: source.el,
+        paint: paintCanvasRef.current,
         rotation,
         flipH,
         flipV,
@@ -635,15 +763,25 @@ export default function ImageConverter() {
     source && previewSize ? Math.round((previewSize / source.size) * 100) : null;
 
   return (
-    <section className="min-h-[calc(100dvh-80px)] px-6 sm:px-8 md:px-16 lg:px-24 py-12 md:py-16 max-w-7xl mx-auto">
-      <p className="text-white/30 text-xs font-sans tracking-[0.2em] uppercase mb-6">Tools</p>
-      <h1 className="text-white text-4xl sm:text-5xl md:text-6xl leading-[0.95] mb-4">
-        Image Converter.
-      </h1>
-      <p className="text-white/40 font-sans text-sm md:text-base max-w-xl mb-10 tracking-wide">
-        Konvertieren, komprimieren, zuschneiden und erweitern. Alles läuft lokal — keine Daten
-        verlassen deinen Browser.
-      </p>
+    <section
+      className={
+        paintFullscreen && source
+          ? 'min-h-[calc(100dvh-80px)] px-3 sm:px-4 py-6 max-w-none mx-auto'
+          : 'min-h-[calc(100dvh-80px)] px-6 sm:px-8 md:px-16 lg:px-24 py-12 md:py-16 max-w-7xl mx-auto'
+      }
+    >
+      {!source && (
+        <>
+          <p className="text-white/45 text-xs font-sans tracking-[0.2em] uppercase mb-6">Tools</p>
+          <h1 className="text-white text-4xl sm:text-5xl md:text-6xl leading-[0.95] mb-4">
+            Image Converter.
+          </h1>
+          <p className="text-white/55 font-sans text-sm md:text-base max-w-xl mb-10 tracking-wide">
+            Konvertieren, komprimieren, zuschneiden und erweitern. Alles läuft lokal — keine Daten
+            verlassen deinen Browser.
+          </p>
+        </>
+      )}
 
       {!source && (
         <div
@@ -657,11 +795,11 @@ export default function ImageConverter() {
           className={`border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-colors ${
             isDragging
               ? 'border-white/60 bg-white/[0.04]'
-              : 'border-white/15 hover:border-white/30 bg-white/[0.01]'
+              : 'border-white/25 hover:border-white/30 bg-white/[0.01]'
           }`}
         >
           <p className="text-white text-lg font-sans mb-2">Bild hierher ziehen</p>
-          <p className="text-white/40 text-sm font-sans">
+          <p className="text-white/55 text-sm font-sans">
             oder klicken zum Auswählen — PNG, JPEG, WEBP, AVIF, HEIC/HEIF, GIF, BMP, ICO
           </p>
           <input
@@ -681,7 +819,13 @@ export default function ImageConverter() {
       )}
 
       {source && sourceUrl && (
-        <div className="grid lg:grid-cols-[1fr_360px] gap-8">
+        <div
+          className={
+            paintFullscreen
+              ? 'grid lg:grid-cols-[1fr_320px] gap-4'
+              : 'grid lg:grid-cols-[1fr_360px] gap-8'
+          }
+        >
           <div className="flex flex-col gap-6 min-w-0">
             <div>
               <div className="flex items-center justify-between mb-3 gap-4">
@@ -689,7 +833,7 @@ export default function ImageConverter() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className={`${buttonClass} border-white/15 text-white/70 hover:bg-white/[0.04]`}
+                  className={`${buttonClass} border-white/25 text-white/80 hover:bg-white/[0.04]`}
                 >
                   Anderes Bild
                 </button>
@@ -701,68 +845,49 @@ export default function ImageConverter() {
                   onChange={onFileInput}
                 />
               </div>
-              <p className="text-white/40 text-xs font-sans mb-3">
+              <p className="text-white/55 text-xs font-sans mb-3">
                 {source.name} — {source.width}×{source.height} — {formatBytes(source.size)}
               </p>
-              <div className="max-w-sm mx-auto">
-                <CropOverlay
-                  imgUrl={sourceUrl}
-                  imgW={rotatedSize(source.width, source.height, rotation).width}
-                  imgH={rotatedSize(source.width, source.height, rotation).height}
-                  crop={crop}
-                  onChange={setCrop}
-                />
-              </div>
-              <div className="flex items-center justify-center gap-1.5 mt-3 flex-nowrap [&_button]:!px-2.5 [&_button]:!py-1.5 [&_button]:!text-xs [&_button]:whitespace-nowrap">
-                <button
-                  type="button"
-                  onClick={() => setCrop({ x: 0, y: 0, w: 1, h: 1 })}
-                  className={`${buttonClass} border-white/15 text-white/70 hover:bg-white/[0.04]`}
-                >
-                  Crop zurücksetzen
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRotation((r) => (r + 270) % 360)}
-                  className={`${buttonClass} border-white/15 text-white/70 hover:bg-white/[0.04]`}
-                >
-                  ↺ 90°
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRotation((r) => (r + 90) % 360)}
-                  className={`${buttonClass} border-white/15 text-white/70 hover:bg-white/[0.04]`}
-                >
-                  ↻ 90°
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFlipH((v) => !v)}
-                  className={`${buttonClass} ${
-                    flipH
-                      ? 'border-white/40 bg-white/10 text-white'
-                      : 'border-white/15 text-white/70 hover:bg-white/[0.04]'
-                  }`}
-                >
-                  Spiegeln H
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFlipV((v) => !v)}
-                  className={`${buttonClass} ${
-                    flipV
-                      ? 'border-white/40 bg-white/10 text-white'
-                      : 'border-white/15 text-white/70 hover:bg-white/[0.04]'
-                  }`}
-                >
-                  Spiegeln V
-                </button>
+              <div
+                className={paintFullscreen && activeTab === 'paint' ? 'w-full' : 'max-w-sm mx-auto'}
+              >
+                {activeTab === 'paint' ? (
+                  <PaintCanvas
+                    imgUrl={sourceUrl}
+                    imgW={source.width}
+                    imgH={source.height}
+                    canvas={paintCanvasRef.current}
+                    tool={paintTool}
+                    color={paintColor}
+                    size={paintSize}
+                    onStrokeStart={onPaintStrokeStart}
+                    onStrokeEnd={onPaintStrokeEnd}
+                    tolerance={paintTolerance}
+                    fillShape={paintFillShape}
+                    opacity={paintOpacity}
+                    selection={paintSelection}
+                    onSelectionChange={setPaintSelection}
+                    onColorPick={(hex) => {
+                      setPaintColor(hex);
+                      setPaintTool('brush');
+                    }}
+                    srcImg={source.el}
+                  />
+                ) : (
+                  <CropOverlay
+                    imgUrl={sourceUrl}
+                    imgW={rotatedSize(source.width, source.height, rotation).width}
+                    imgH={rotatedSize(source.width, source.height, rotation).height}
+                    crop={crop}
+                    onChange={setCrop}
+                  />
+                )}
               </div>
             </div>
 
             <div>
               <span className={labelClass}>Vorschau</span>
-              <div className="max-w-sm mx-auto border border-white/10 rounded-lg p-4 bg-[repeating-conic-gradient(#1a1a1a_0%_25%,#0f0f0f_0%_50%)] bg-[length:16px_16px]">
+              <div className="max-w-sm mx-auto border border-white/20 rounded-lg p-4 bg-[repeating-conic-gradient(#1a1a1a_0%_25%,#0f0f0f_0%_50%)] bg-[length:16px_16px]">
                 {previewUrl ? (
                   <img
                     src={previewUrl}
@@ -770,16 +895,16 @@ export default function ImageConverter() {
                     className="max-w-full max-h-[60vh] mx-auto block"
                   />
                 ) : (
-                  <p className="text-white/40 text-sm font-sans text-center py-12">
+                  <p className="text-white/55 text-sm font-sans text-center py-12">
                     {busy ? 'Wird gerendert…' : 'Keine Vorschau'}
                   </p>
                 )}
               </div>
               {previewDims && (
-                <p className="text-white/40 text-xs font-sans mt-2">
+                <p className="text-white/55 text-xs font-sans mt-2">
                   {previewDims.w}×{previewDims.h} — {formatBytes(previewSize)}
                   {compressionRatio !== null && (
-                    <span className="ml-2 text-white/30">({compressionRatio}% der Quelle)</span>
+                    <span className="ml-2 text-white/45">({compressionRatio}% der Quelle)</span>
                   )}
                 </p>
               )}
@@ -787,209 +912,324 @@ export default function ImageConverter() {
           </div>
 
           <aside className="flex flex-col gap-5">
-            <div>
-              <label className={labelClass}>Format</label>
-              <div className="grid grid-cols-2 gap-2">
-                {FORMATS.map((f) => {
-                  const disabled = f.value === 'avif' && !avifSupported;
-                  return (
-                    <button
-                      key={f.value}
-                      type="button"
-                      disabled={disabled}
-                      title={
-                        disabled ? 'AVIF-Encoding wird vom Browser nicht unterstützt' : undefined
-                      }
-                      onClick={() => setFormat(f.value)}
-                      className={`${buttonClass} ${
-                        format === f.value
-                          ? 'border-white/40 bg-white/10 text-white'
-                          : 'border-white/15 text-white/70 hover:bg-white/[0.04]'
-                      }`}
-                    >
-                      {f.label}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="grid grid-cols-2 gap-1 p-1 border border-white/25 rounded-lg bg-white/[0.02]">
+              <button
+                type="button"
+                onClick={() => setActiveTab('edit')}
+                className={`px-3 py-2 text-xs font-sans rounded-md tracking-wider uppercase transition-colors ${
+                  activeTab === 'edit'
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/65 hover:text-white/90'
+                }`}
+              >
+                Bearbeiten
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('paint')}
+                className={`px-3 py-2 text-xs font-sans rounded-md tracking-wider uppercase transition-colors ${
+                  activeTab === 'paint'
+                    ? 'bg-white/10 text-white'
+                    : 'text-white/65 hover:text-white/90'
+                }`}
+              >
+                Zeichnen
+              </button>
             </div>
-
-            {(format === 'jpeg' || format === 'webp' || format === 'avif') && (
-              <div>
-                <label className={labelClass}>Qualität — {Math.round(quality * 100)}%</label>
-                <input
-                  type="range"
-                  min={0.1}
-                  max={1}
-                  step={0.01}
-                  value={quality}
-                  onChange={(e) => setQuality(parseFloat(e.target.value))}
-                  className="w-full accent-white"
-                />
-              </div>
-            )}
-
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <span className={labelClass + ' mb-0'}>Größe</span>
-                <button
-                  type="button"
-                  onClick={onResetResize}
-                  className="text-white/40 hover:text-white text-xs font-sans"
-                >
-                  Reset
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+            {activeTab === 'paint' && (
+              <>
+                <ToggleChip active={paintFullscreen} onClick={() => setPaintFullscreen((v) => !v)}>
+                  {paintFullscreen ? '✕ Vollbild verlassen' : '⤢ Vollbild'}
+                </ToggleChip>
                 <div>
-                  <label className="text-white/40 text-[10px] font-sans uppercase tracking-wider">
-                    Breite
-                  </label>
-                  <input
-                    type="number"
+                  <label className={labelClass}>Werkzeug</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {PAINT_TOOL_BUTTONS.map(({ tool, label }) => (
+                      <ToggleChip
+                        key={tool}
+                        active={paintTool === tool}
+                        onClick={() => setPaintTool(tool)}
+                      >
+                        {label}
+                      </ToggleChip>
+                    ))}
+                  </div>
+                </div>
+                <ColorPicker
+                  label="Farbe"
+                  value={paintColor}
+                  onChange={setPaintColor}
+                  swatches={PAINT_COLORS}
+                />
+                <div>
+                  <label className={labelClass}>Pinselgröße</label>
+                  <NumberWithPresets
+                    value={paintSize}
+                    onChange={setPaintSize}
                     min={1}
-                    value={resize.width}
-                    onChange={(e) => onWidthChange(parseInt(e.target.value, 10) || 1)}
-                    className={inputClass}
+                    max={500}
+                    unit="px"
+                    presets={PAINT_SIZES}
+                    presetsLabel="Vordefinierte Pinselgrößen"
                   />
                 </div>
-                <div>
-                  <label className="text-white/40 text-[10px] font-sans uppercase tracking-wider">
-                    Höhe
-                  </label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={resize.height}
-                    onChange={(e) => onHeightChange(parseInt(e.target.value, 10) || 1)}
-                    className={inputClass}
-                  />
-                </div>
-              </div>
-              <label className="flex items-center gap-2 mt-2 text-white/60 text-xs font-sans cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={resize.lockAspect}
-                  onChange={(e) => setResize((p) => ({ ...p, lockAspect: e.target.checked }))}
-                  className="accent-white"
-                />
-                Seitenverhältnis sperren
-              </label>
-              <div className="flex gap-1.5 mt-2 flex-wrap">
-                {[0.25, 0.5, 1, 2].map((scale) => (
-                  <button
-                    key={scale}
-                    type="button"
-                    onClick={() => {
-                      if (!baseDims) return;
-                      setResize((p) => ({
-                        ...p,
-                        width: Math.max(1, Math.round(baseDims.width * scale)),
-                        height: Math.max(1, Math.round(baseDims.height * scale)),
-                      }));
-                    }}
-                    className="px-2 py-1 text-xs font-sans rounded border border-white/15 text-white/60 hover:bg-white/[0.04]"
-                  >
-                    {scale}×
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <details className="group">
-              <summary className="flex items-center justify-between cursor-pointer list-none mb-2">
-                <span className={labelClass + ' mb-0'}>Erweitern (Padding in Pixel)</span>
-                <span className="text-white/40 text-xs font-sans transition-transform group-open:rotate-180">
-                  ▾
-                </span>
-              </summary>
-              <div className="grid grid-cols-2 gap-2">
-                {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
-                  <div key={side}>
-                    <label className="text-white/40 text-[10px] font-sans uppercase tracking-wider">
-                      {side === 'top'
-                        ? 'Oben'
-                        : side === 'right'
-                          ? 'Rechts'
-                          : side === 'bottom'
-                            ? 'Unten'
-                            : 'Links'}
-                    </label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={extend[side]}
-                      onChange={(e) =>
-                        setExtend((p) => ({
-                          ...p,
-                          [side]: Math.max(0, parseInt(e.target.value, 10) || 0),
-                        }))
-                      }
-                      className={inputClass}
+                {(paintTool === 'brush' ||
+                  paintTool === 'eraser' ||
+                  paintTool === 'box' ||
+                  paintTool === 'circle' ||
+                  paintTool === 'line') && (
+                  <div>
+                    <label className={labelClass}>Deckkraft</label>
+                    <NumberWithPresets
+                      value={paintOpacity}
+                      onChange={setPaintOpacity}
+                      min={1}
+                      max={100}
+                      unit="%"
+                      presets={PAINT_OPACITY_PRESETS}
+                      presetsLabel="Vordefinierte Deckkraft-Werte"
                     />
                   </div>
-                ))}
-              </div>
-              <label className="flex items-center gap-2 mt-2 text-white/60 text-xs font-sans cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={extend.transparent}
-                  onChange={(e) => setExtend((p) => ({ ...p, transparent: e.target.checked }))}
-                  className="accent-white"
-                />
-                Transparent (nur PNG/WEBP/ICO)
-              </label>
-              {!extend.transparent && (
-                <div className="mt-2 flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={extend.color}
-                    onChange={(e) => setExtend((p) => ({ ...p, color: e.target.value }))}
-                    className="w-10 h-10 rounded border border-white/15 bg-transparent cursor-pointer"
-                  />
-                  <input
-                    type="text"
-                    value={extend.color}
-                    onChange={(e) => setExtend((p) => ({ ...p, color: e.target.value }))}
-                    className={inputClass}
-                  />
+                )}
+                {(paintTool === 'box' || paintTool === 'circle') && (
+                  <ToggleChip active={paintFillShape} onClick={() => setPaintFillShape((v) => !v)}>
+                    {paintFillShape ? '■ Form gefüllt' : '□ Nur Kontur'}
+                  </ToggleChip>
+                )}
+                {(paintTool === 'bucket' || paintTool === 'magic-wand') && (
+                  <div>
+                    <label className={labelClass}>Toleranz — {paintTolerance}</label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={255}
+                      step={1}
+                      value={paintTolerance}
+                      onChange={(e) => setPaintTolerance(parseInt(e.target.value, 10))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+                )}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={onPaintUndo}
+                    disabled={!paintCanUndo}
+                    className={`${buttonClass} border-white/25 text-white/80 hover:bg-white/[0.04]`}
+                  >
+                    ↶ Rückgängig
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onPaintClear}
+                    className={`${buttonClass} border-white/25 text-white/80 hover:bg-white/[0.04]`}
+                  >
+                    {paintSelection ? 'Auswahl löschen' : 'Alles löschen'}
+                  </button>
                 </div>
-              )}
-            </details>
-
-            {(format === 'jpeg' || format === 'webp' || format === 'avif') && (
-              <details className="group">
-                <summary className="flex items-center justify-between cursor-pointer list-none mb-2">
-                  <span className={labelClass + ' mb-0'}>Auf Zielgröße komprimieren</span>
-                  <span className="text-white/40 text-xs font-sans transition-transform group-open:rotate-180">
-                    ▾
-                  </span>
-                </summary>
-                <div className="flex gap-2">
-                  <input
-                    type="number"
-                    min={1}
-                    placeholder="z. B. 200"
-                    value={targetKb}
-                    onChange={(e) => setTargetKb(e.target.value)}
-                    className={inputClass}
-                  />
-                  <span className="flex items-center text-white/50 text-xs font-sans">KB</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={onCompressToTarget}
-                  disabled={!targetKb || compressing}
-                  className={`${buttonClass} border-white/15 text-white/80 hover:bg-white/[0.04] mt-2 w-full`}
-                >
-                  {compressing ? 'Berechne Qualität…' : 'Quality automatisch finden'}
-                </button>
-                <p className="text-white/30 text-[10px] font-sans mt-1.5">
-                  Binäre Suche über die Qualitätsstufe für die beste Größe ≤ Ziel.
+                <p className="text-white/45 text-[10px] font-sans">
+                  Zeichnungen werden auf das Originalbild gelegt und mit exportiert.
                 </p>
-              </details>
+              </>
             )}
+            {activeTab === 'edit' && (
+              <>
+                <div>
+                  <label className={labelClass}>Format</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {FORMATS.map((f) => {
+                      const disabled = f.value === 'avif' && !avifSupported;
+                      return (
+                        <ToggleChip
+                          key={f.value}
+                          active={format === f.value}
+                          disabled={disabled}
+                          onClick={() => setFormat(f.value)}
+                        >
+                          {f.label}
+                        </ToggleChip>
+                      );
+                    })}
+                  </div>
+                </div>
 
+                {(format === 'jpeg' || format === 'webp' || format === 'avif') && (
+                  <div>
+                    <label className={labelClass}>Qualität — {Math.round(quality * 100)}%</label>
+                    <input
+                      type="range"
+                      min={0.1}
+                      max={1}
+                      step={0.01}
+                      value={quality}
+                      onChange={(e) => setQuality(parseFloat(e.target.value))}
+                      className="w-full accent-white"
+                    />
+                  </div>
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className={labelClass + ' mb-0'}>Größe</span>
+                    <button
+                      type="button"
+                      onClick={onResetResize}
+                      className="text-white/55 hover:text-white text-xs font-sans"
+                    >
+                      Reset
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-white/55 text-[10px] font-sans uppercase tracking-wider">
+                        Breite
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={resize.width}
+                        onChange={(e) => onWidthChange(parseInt(e.target.value, 10) || 1)}
+                        className={inputClass}
+                      />
+                    </div>
+                    <div>
+                      <label className="text-white/55 text-[10px] font-sans uppercase tracking-wider">
+                        Höhe
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={resize.height}
+                        onChange={(e) => onHeightChange(parseInt(e.target.value, 10) || 1)}
+                        className={inputClass}
+                      />
+                    </div>
+                  </div>
+                  <label className="flex items-center gap-2 mt-2 text-white/75 text-xs font-sans cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={resize.lockAspect}
+                      onChange={(e) => setResize((p) => ({ ...p, lockAspect: e.target.checked }))}
+                      className="accent-white"
+                    />
+                    Seitenverhältnis sperren
+                  </label>
+                  <div className="flex gap-1.5 mt-2 flex-wrap">
+                    {[0.25, 0.5, 1, 2].map((scale) => (
+                      <button
+                        key={scale}
+                        type="button"
+                        onClick={() => {
+                          if (!baseDims) return;
+                          setResize((p) => ({
+                            ...p,
+                            width: Math.max(1, Math.round(baseDims.width * scale)),
+                            height: Math.max(1, Math.round(baseDims.height * scale)),
+                          }));
+                        }}
+                        className="px-2 py-1 text-xs font-sans rounded border border-white/25 text-white/75 hover:bg-white/[0.04]"
+                      >
+                        {scale}×
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer list-none mb-2">
+                    <span className={labelClass + ' mb-0'}>Erweitern (Padding in Pixel)</span>
+                    <span className="text-white/55 text-xs font-sans transition-transform group-open:rotate-180">
+                      ▾
+                    </span>
+                  </summary>
+                  <div className="grid grid-cols-2 gap-2">
+                    {(['top', 'right', 'bottom', 'left'] as const).map((side) => (
+                      <div key={side}>
+                        <label className="text-white/55 text-[10px] font-sans uppercase tracking-wider">
+                          {side === 'top'
+                            ? 'Oben'
+                            : side === 'right'
+                              ? 'Rechts'
+                              : side === 'bottom'
+                                ? 'Unten'
+                                : 'Links'}
+                        </label>
+                        <input
+                          type="number"
+                          min={0}
+                          value={extend[side]}
+                          onChange={(e) =>
+                            setExtend((p) => ({
+                              ...p,
+                              [side]: Math.max(0, parseInt(e.target.value, 10) || 0),
+                            }))
+                          }
+                          className={inputClass}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <label className="flex items-center gap-2 mt-2 text-white/75 text-xs font-sans cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={extend.transparent}
+                      onChange={(e) => setExtend((p) => ({ ...p, transparent: e.target.checked }))}
+                      className="accent-white"
+                    />
+                    Transparent (nur PNG/WEBP/ICO)
+                  </label>
+                  {!extend.transparent && (
+                    <div className="mt-2 flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={extend.color}
+                        onChange={(e) => setExtend((p) => ({ ...p, color: e.target.value }))}
+                        className="w-10 h-10 rounded border border-white/25 bg-transparent cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={extend.color}
+                        onChange={(e) => setExtend((p) => ({ ...p, color: e.target.value }))}
+                        className={inputClass}
+                      />
+                    </div>
+                  )}
+                </details>
+
+                {(format === 'jpeg' || format === 'webp' || format === 'avif') && (
+                  <details className="group">
+                    <summary className="flex items-center justify-between cursor-pointer list-none mb-2">
+                      <span className={labelClass + ' mb-0'}>Auf Zielgröße komprimieren</span>
+                      <span className="text-white/55 text-xs font-sans transition-transform group-open:rotate-180">
+                        ▾
+                      </span>
+                    </summary>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min={1}
+                        placeholder="z. B. 200"
+                        value={targetKb}
+                        onChange={(e) => setTargetKb(e.target.value)}
+                        className={inputClass}
+                      />
+                      <span className="flex items-center text-white/65 text-xs font-sans">KB</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={onCompressToTarget}
+                      disabled={!targetKb || compressing}
+                      className={`${buttonClass} border-white/25 text-white/90 hover:bg-white/[0.04] mt-2 w-full`}
+                    >
+                      {compressing ? 'Berechne Qualität…' : 'Quality automatisch finden'}
+                    </button>
+                    <p className="text-white/45 text-[10px] font-sans mt-1.5">
+                      Binäre Suche über die Qualitätsstufe für die beste Größe ≤ Ziel.
+                    </p>
+                  </details>
+                )}
+              </>
+            )}
             <button
               type="button"
               onClick={onDownload}

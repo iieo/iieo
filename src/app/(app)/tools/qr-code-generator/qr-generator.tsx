@@ -1,5 +1,9 @@
 'use client';
 
+import { buttonClass, inputClass, labelClass } from '@/components/ui/class-names';
+import { ColorPicker } from '@/components/ui/color-picker';
+import { Panel } from '@/components/ui/panel';
+import { ToggleChip } from '@/components/ui/toggle-chip';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import {
@@ -62,12 +66,6 @@ const INITIAL_STYLE: StyleState = {
   logoSize: 0.3,
   hideBackgroundDots: true,
 };
-
-const labelClass = 'block text-white/55 text-xs font-sans tracking-wider uppercase mb-1.5';
-const inputClass =
-  'w-full bg-white/[0.03] border border-white/20 rounded-lg px-3 py-2.5 text-white text-sm font-sans focus:outline-none focus:border-white/40 transition-colors';
-const buttonClass =
-  'px-4 py-2.5 text-sm font-sans rounded-lg border transition-colors disabled:opacity-30 disabled:cursor-not-allowed';
 
 function useDebounced<T>(value: T, delay: number): T {
   const [v, setV] = useState(value);
@@ -242,7 +240,7 @@ export default function QrGenerator() {
       <div className="grid lg:grid-cols-[1fr_380px] gap-8">
         {/* Form column */}
         <div className="space-y-6">
-          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
+          <Panel>
             <p className={labelClass}>Inhalt</p>
             <div className="flex flex-wrap gap-2 mb-5">
               {CONTENT_TYPES.map((t) => (
@@ -260,9 +258,9 @@ export default function QrGenerator() {
               ))}
             </div>
             <ContentForm type={contentType} state={content} onChange={handleContentChange} />
-          </div>
+          </Panel>
 
-          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
+          <Panel>
             <div className="flex items-center justify-between mb-3">
               <p className={`${labelClass} mb-0`}>Größe</p>
               <span className="text-white/55 text-xs font-sans">
@@ -291,25 +289,21 @@ export default function QrGenerator() {
             </div>
             <div className="grid grid-cols-4 gap-2 mt-3">
               {SIZE_PRESETS.map((px) => (
-                <button
+                <ToggleChip
                   key={px}
+                  active={style.size === px}
                   onClick={() => {
                     setStyle((s) => ({ ...s, size: px }));
                     setSizeInput(String(px));
                   }}
-                  className={`${buttonClass} ${
-                    style.size === px
-                      ? 'bg-white/15 border-white/40 text-white'
-                      : 'border-white/20 text-white/65 hover:border-white/35'
-                  }`}
                 >
                   {px}
-                </button>
+                </ToggleChip>
               ))}
             </div>
-          </div>
+          </Panel>
 
-          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm">
+          <Panel>
             <p className={labelClass}>Logo (optional)</p>
             <LogoUploader
               dataUrl={style.logoDataUrl}
@@ -355,18 +349,18 @@ export default function QrGenerator() {
                 )}
               </div>
             ) : null}
-          </div>
+          </Panel>
 
-          <div className="border border-white/[0.15] rounded-2xl p-5 md:p-6 bg-white/[0.02] backdrop-blur-sm space-y-5">
+          <Panel className="space-y-5">
             <p className={labelClass}>Stil</p>
 
             <div className="grid grid-cols-2 gap-3">
-              <ColorField
+              <ColorPicker
                 label="Vordergrund"
                 value={style.fgColor}
                 onChange={(v) => setStyle((s) => ({ ...s, fgColor: v }))}
               />
-              <ColorField
+              <ColorPicker
                 label="Hintergrund"
                 value={style.bgColor}
                 onChange={(v) => setStyle((s) => ({ ...s, bgColor: v }))}
@@ -443,12 +437,12 @@ export default function QrGenerator() {
                 <option value="H">H — sehr hoch (~30%)</option>
               </select>
             </div>
-          </div>
+          </Panel>
         </div>
 
         {/* Preview column */}
         <div className="lg:sticky lg:top-6 lg:self-start space-y-4">
-          <div className="border border-white/[0.15] rounded-2xl p-6 bg-white/[0.02] backdrop-blur-sm">
+          <Panel>
             <div
               className="aspect-square w-full rounded-xl overflow-hidden flex items-center justify-center transition-colors"
               style={{ backgroundColor: style.bgColor }}
@@ -461,29 +455,20 @@ export default function QrGenerator() {
                 <div ref={containerRef} className="[&>svg]:w-full [&>svg]:h-full" />
               )}
             </div>
-          </div>
+          </Panel>
 
           <div>
             <p className={labelClass}>Format</p>
             <div role="radiogroup" aria-label="Download-Format" className="grid grid-cols-3 gap-2">
-              {(['png', 'svg', 'jpeg'] as const).map((fmt) => {
-                const active = downloadFormat === fmt;
-                return (
-                  <button
-                    key={fmt}
-                    role="radio"
-                    aria-checked={active}
-                    onClick={() => setDownloadFormat(fmt)}
-                    className={`${buttonClass} ${
-                      active
-                        ? 'bg-white/15 border-white/40 text-white'
-                        : 'border-white/20 text-white/65 hover:border-white/35'
-                    }`}
-                  >
-                    {fmt.toUpperCase()}
-                  </button>
-                );
-              })}
+              {(['png', 'svg', 'jpeg'] as const).map((fmt) => (
+                <ToggleChip
+                  key={fmt}
+                  active={downloadFormat === fmt}
+                  onClick={() => setDownloadFormat(fmt)}
+                >
+                  {fmt.toUpperCase()}
+                </ToggleChip>
+              ))}
             </div>
           </div>
 
@@ -685,36 +670,6 @@ function DotStylePreview({ type, color, bg }: { type: DotType; color: string; bg
     >
       {pattern.flatMap((row, y) => row.map((v, x) => (v ? renderCell(x, y, `${x}-${y}`) : null)))}
     </svg>
-  );
-}
-
-function ColorField({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  return (
-    <div>
-      <label className={labelClass}>{label}</label>
-      <div className="flex gap-2 items-center">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-10 h-10 rounded-lg border border-white/20 bg-transparent cursor-pointer shrink-0"
-        />
-        <input
-          type="text"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className={inputClass}
-        />
-      </div>
-    </div>
   );
 }
 
