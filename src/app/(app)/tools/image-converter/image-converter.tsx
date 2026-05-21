@@ -14,11 +14,11 @@ import {
   PAINT_SIZES,
 } from './paint/constants';
 import {
+  drawTextOnContext,
   PaintCanvas,
   type PaintSelection,
   type PaintTool,
   type PendingText,
-  drawTextOnContext,
 } from './paint/paint-canvas';
 
 const PAINT_TOOL_BUTTONS: ReadonlyArray<{ tool: PaintTool; label: string }> = [
