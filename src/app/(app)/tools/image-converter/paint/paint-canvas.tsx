@@ -11,7 +11,8 @@ export type PaintTool =
   | 'box'
   | 'circle'
   | 'line'
-  | 'magic-wand';
+  | 'magic-wand'
+  | 'text';
 
 export interface PaintSelection {
   x: number;
@@ -43,6 +44,11 @@ interface PaintCanvasProps {
   onSelectionChange?: (sel: PaintSelection | null) => void;
   onColorPick?: (hex: string) => void;
   srcImg?: HTMLImageElement | null;
+  text?: string;
+  fontSize?: number;
+  fontFamily?: string;
+  fontBold?: boolean;
+  fontItalic?: boolean;
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -87,6 +93,11 @@ export function PaintCanvas({
   onSelectionChange,
   onColorPick,
   srcImg,
+  text = '',
+  fontSize = 48,
+  fontFamily = 'Inter, sans-serif',
+  fontBold = false,
+  fontItalic = false,
 }: PaintCanvasProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
@@ -104,8 +115,7 @@ export function PaintCanvas({
     canvas.style.width = '100%';
     canvas.style.height = '100%';
     canvas.style.touchAction = 'none';
-    canvas.style.cursor =
-      tool === 'picker' ? 'copy' : tool === 'select' ? 'crosshair' : 'crosshair';
+    canvas.style.cursor = tool === 'picker' ? 'copy' : tool === 'text' ? 'text' : 'crosshair';
     wrap.appendChild(canvas);
     return () => {
       if (canvas.parentNode === wrap) wrap.removeChild(canvas);
@@ -427,6 +437,28 @@ export function PaintCanvas({
         return;
       }
 
+      if (tool === 'text') {
+        if (!canvas || !text) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        onStrokeStart();
+        ctx.save();
+        ctx.globalAlpha = opacity / 100;
+        ctx.fillStyle = color;
+        const weight = fontBold ? '700' : '400';
+        const style = fontItalic ? 'italic' : 'normal';
+        ctx.font = `${style} ${weight} ${fontSize}px ${fontFamily}`;
+        ctx.textBaseline = 'top';
+        const lines = text.split('\n');
+        const lineHeight = fontSize * 1.2;
+        lines.forEach((line, i) => {
+          ctx.fillText(line, pt.x, pt.y + i * lineHeight);
+        });
+        ctx.restore();
+        onStrokeEnd();
+        return;
+      }
+
       if (tool === 'magic-wand') {
         const sel = magicWandSelect(Math.floor(pt.x), Math.floor(pt.y));
         onSelectionChange?.(sel);
@@ -471,6 +503,12 @@ export function PaintCanvas({
       ensureStrokeBuffer,
       drawSegmentToBuffer,
       compositeStroke,
+      text,
+      fontSize,
+      fontFamily,
+      fontBold,
+      fontItalic,
+      opacity,
     ],
   );
 
