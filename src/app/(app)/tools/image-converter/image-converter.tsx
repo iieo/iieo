@@ -25,6 +25,16 @@ const PAINT_TOOL_BUTTONS: ReadonlyArray<{ tool: PaintTool; label: string }> = [
   { tool: 'box', label: 'Rechteck' },
   { tool: 'circle', label: 'Kreis' },
   { tool: 'line', label: 'Linie' },
+  { tool: 'text', label: 'Text' },
+];
+
+const PAINT_FONT_FAMILIES: ReadonlyArray<{ value: string; label: string }> = [
+  { value: 'Inter, sans-serif', label: 'Inter' },
+  { value: 'Georgia, serif', label: 'Georgia' },
+  { value: '"Times New Roman", serif', label: 'Times' },
+  { value: '"Courier New", monospace', label: 'Courier' },
+  { value: '"Rubik Mono One", sans-serif', label: 'Rubik Mono' },
+  { value: 'Arial, sans-serif', label: 'Arial' },
 ];
 
 type OutputFormat = 'png' | 'jpeg' | 'webp' | 'avif' | 'ico';
@@ -415,6 +425,11 @@ export default function ImageConverter() {
   const [paintOpacity, setPaintOpacity] = useState<number>(100);
   const [paintSelection, setPaintSelection] = useState<PaintSelection | null>(null);
   const [paintFullscreen, setPaintFullscreen] = useState<boolean>(false);
+  const [paintText, setPaintText] = useState<string>('Text');
+  const [paintFontSize, setPaintFontSize] = useState<number>(48);
+  const [paintFontFamily, setPaintFontFamily] = useState<string>('Inter, sans-serif');
+  const [paintFontBold, setPaintFontBold] = useState<boolean>(false);
+  const [paintFontItalic, setPaintFontItalic] = useState<boolean>(false);
 
   useEffect(() => {
     let alive = true;
@@ -872,6 +887,11 @@ export default function ImageConverter() {
                       setPaintTool('brush');
                     }}
                     srcImg={source.el}
+                    text={paintText}
+                    fontSize={paintFontSize}
+                    fontFamily={paintFontFamily}
+                    fontBold={paintFontBold}
+                    fontItalic={paintFontItalic}
                   />
                 ) : (
                   <CropOverlay
@@ -973,11 +993,69 @@ export default function ImageConverter() {
                     presetsLabel="Vordefinierte Pinselgrößen"
                   />
                 </div>
+                {paintTool === 'text' && (
+                  <>
+                    <div>
+                      <label className={labelClass}>Text</label>
+                      <textarea
+                        value={paintText}
+                        onChange={(e) => setPaintText(e.target.value)}
+                        rows={3}
+                        className={inputClass}
+                        placeholder="Text eingeben…"
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>Schriftart</label>
+                      <select
+                        value={paintFontFamily}
+                        onChange={(e) => setPaintFontFamily(e.target.value)}
+                        className={inputClass}
+                      >
+                        {PAINT_FONT_FAMILIES.map((f) => (
+                          <option key={f.value} value={f.value} style={{ color: '#000' }}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className={labelClass}>Schriftgröße</label>
+                      <NumberWithPresets
+                        value={paintFontSize}
+                        onChange={setPaintFontSize}
+                        min={6}
+                        max={500}
+                        unit="px"
+                        presets={[12, 24, 48, 96, 144]}
+                        presetsLabel="Vordefinierte Schriftgrößen"
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <ToggleChip
+                        active={paintFontBold}
+                        onClick={() => setPaintFontBold((v) => !v)}
+                      >
+                        B Fett
+                      </ToggleChip>
+                      <ToggleChip
+                        active={paintFontItalic}
+                        onClick={() => setPaintFontItalic((v) => !v)}
+                      >
+                        I Kursiv
+                      </ToggleChip>
+                    </div>
+                    <p className="text-white/45 text-[10px] font-sans">
+                      Auf das Bild klicken, um den Text an dieser Position einzufügen.
+                    </p>
+                  </>
+                )}
                 {(paintTool === 'brush' ||
                   paintTool === 'eraser' ||
                   paintTool === 'box' ||
                   paintTool === 'circle' ||
-                  paintTool === 'line') && (
+                  paintTool === 'line' ||
+                  paintTool === 'text') && (
                   <div>
                     <label className={labelClass}>Deckkraft</label>
                     <NumberWithPresets
