@@ -308,31 +308,74 @@ function CropOverlay({ imgUrl, imgW, imgH, crop, onChange }: CropOverlayProps) {
       if (!drag) return;
       const dxPct = (e.clientX - drag.startX) / drag.rect.width;
       const dyPct = (e.clientY - drag.startY) / drag.rect.height;
-      const c = { ...drag.startCrop };
       const minSize = 0.02;
+      let nx = drag.startCrop.x;
+      let ny = drag.startCrop.y;
+      let nw = drag.startCrop.w;
+      let nh = drag.startCrop.h;
 
       if (drag.mode === 'move') {
-        c.x = clamp(c.x + dxPct, 0, 1 - c.w);
-        c.y = clamp(c.y + dyPct, 0, 1 - c.h);
+        nx = clamp(drag.startCrop.x + dxPct, 0, 1 - drag.startCrop.w);
+        ny = clamp(drag.startCrop.y + dyPct, 0, 1 - drag.startCrop.h);
       } else {
         if (drag.mode === 'nw' || drag.mode === 'sw') {
-          const nx = clamp(c.x + dxPct, 0, c.x + c.w - minSize);
-          c.w = c.w + (c.x - nx);
-          c.x = nx;
+          nx = clamp(drag.startCrop.x + dxPct, 0, drag.startCrop.x + drag.startCrop.w - minSize);
+          nw = drag.startCrop.w + (drag.startCrop.x - nx);
         }
         if (drag.mode === 'ne' || drag.mode === 'se') {
-          c.w = clamp(c.w + dxPct, minSize, 1 - c.x);
+          nw = clamp(drag.startCrop.w + dxPct, minSize, 1 - drag.startCrop.x);
         }
         if (drag.mode === 'nw' || drag.mode === 'ne') {
-          const ny = clamp(c.y + dyPct, 0, c.y + c.h - minSize);
-          c.h = c.h + (c.y - ny);
-          c.y = ny;
+          ny = clamp(drag.startCrop.y + dyPct, 0, drag.startCrop.y + drag.startCrop.h - minSize);
+          nh = drag.startCrop.h + (drag.startCrop.y - ny);
         }
         if (drag.mode === 'sw' || drag.mode === 'se') {
-          c.h = clamp(c.h + dyPct, minSize, 1 - c.y);
+          nh = clamp(drag.startCrop.h + dyPct, minSize, 1 - drag.startCrop.y);
+        }
+
+        if (e.shiftKey && drag.startCrop.w > 0 && drag.startCrop.h > 0) {
+          const ratio = drag.startCrop.h / drag.startCrop.w;
+          const dW = Math.abs(nw - drag.startCrop.w);
+          const dH = Math.abs(nh - drag.startCrop.h);
+          if (dW >= dH) {
+            nh = nw * ratio;
+          } else {
+            nw = nh / ratio;
+          }
+          if (drag.mode === 'nw' || drag.mode === 'sw') {
+            nx = drag.startCrop.x + drag.startCrop.w - nw;
+          }
+          if (drag.mode === 'nw' || drag.mode === 'ne') {
+            ny = drag.startCrop.y + drag.startCrop.h - nh;
+          }
+          if (nx < 0) {
+            nw += nx;
+            nx = 0;
+            nh = nw * ratio;
+            if (drag.mode === 'nw' || drag.mode === 'ne') {
+              ny = drag.startCrop.y + drag.startCrop.h - nh;
+            }
+          }
+          if (ny < 0) {
+            nh += ny;
+            ny = 0;
+            nw = nh / ratio;
+            if (drag.mode === 'nw' || drag.mode === 'sw') {
+              nx = drag.startCrop.x + drag.startCrop.w - nw;
+            }
+          }
+          if (nx + nw > 1) {
+            nw = 1 - nx;
+            nh = nw * ratio;
+          }
+          if (ny + nh > 1) {
+            nh = 1 - ny;
+            nw = nh / ratio;
+          }
+          if (nw < minSize || nh < minSize) return;
         }
       }
-      onChange(c);
+      onChange({ x: nx, y: ny, w: nw, h: nh });
     },
     [onChange],
   );
@@ -399,6 +442,7 @@ export default function ImageConverter() {
 
   const [crop, setCrop] = useState<CropRect>({ x: 0, y: 0, w: 1, h: 1 });
   const [resize, setResize] = useState<ResizeState>({ width: 0, height: 0, lockAspect: true });
+  const [resizeMode, setResizeMode] = useState<'scale' | 'crop'>('scale');
   const [extend, setExtend] = useState<Extend>({
     top: 0,
     right: 0,
@@ -521,35 +565,103 @@ export default function ImageConverter() {
   }, [source, rotation, crop.w, crop.h]);
 
   const onResetResize = useCallback(() => {
-    if (baseDims) setResize((p) => ({ ...p, width: baseDims.width, height: baseDims.height }));
-  }, [baseDims]);
+    if (resizeMode === 'crop') {
+      setCrop({ x: 0, y: 0, w: 1, h: 1 });
+    } else if (baseDims) {
+      setResize((p) => ({ ...p, width: baseDims.width, height: baseDims.height }));
+    }
+  }, [baseDims, resizeMode]);
 
   const aspectRatio = baseDims ? baseDims.width / baseDims.height : 1;
 
+  const effectiveResize = useMemo<ResizeState>(
+    () =>
+      resizeMode === 'crop' && baseDims
+        ? { width: baseDims.width, height: baseDims.height, lockAspect: resize.lockAspect }
+        : resize,
+    [resizeMode, baseDims, resize],
+  );
+
+  const displayWidth = resizeMode === 'crop' ? baseDims?.width ?? 0 : resize.width;
+  const displayHeight = resizeMode === 'crop' ? baseDims?.height ?? 0 : resize.height;
+
   const onWidthChange = useCallback(
     (w: number) => {
-      setResize((prev) => ({
-        ...prev,
-        width: w,
-        height: prev.lockAspect ? Math.max(1, Math.round(w / aspectRatio)) : prev.height,
-      }));
+      if (resizeMode === 'crop') {
+        if (!source) return;
+        const rot = rotatedSize(source.width, source.height, rotation);
+        setCrop((prev) => {
+          const maxW = 1 - prev.x;
+          const newWNorm = clamp(w / rot.width, 0.01, Math.max(0.01, maxW));
+          const next: CropRect = { ...prev, w: newWNorm };
+          if (resize.lockAspect && prev.w > 0 && prev.h > 0) {
+            const ratio = prev.h / prev.w;
+            let newHNorm = newWNorm * ratio;
+            const maxH = 1 - prev.y;
+            if (newHNorm > maxH) {
+              newHNorm = maxH;
+              next.w = clamp(newHNorm / ratio, 0.01, maxW);
+            }
+            next.h = clamp(newHNorm, 0.01, maxH);
+          }
+          return next;
+        });
+      } else {
+        setResize((prev) => ({
+          ...prev,
+          width: w,
+          height: prev.lockAspect ? Math.max(1, Math.round(w / aspectRatio)) : prev.height,
+        }));
+      }
     },
-    [aspectRatio],
+    [aspectRatio, resizeMode, source, rotation, resize.lockAspect],
   );
 
   const onHeightChange = useCallback(
     (h: number) => {
-      setResize((prev) => ({
-        ...prev,
-        height: h,
-        width: prev.lockAspect ? Math.max(1, Math.round(h * aspectRatio)) : prev.width,
-      }));
+      if (resizeMode === 'crop') {
+        if (!source) return;
+        const rot = rotatedSize(source.width, source.height, rotation);
+        setCrop((prev) => {
+          const maxH = 1 - prev.y;
+          const newHNorm = clamp(h / rot.height, 0.01, Math.max(0.01, maxH));
+          const next: CropRect = { ...prev, h: newHNorm };
+          if (resize.lockAspect && prev.w > 0 && prev.h > 0) {
+            const ratio = prev.w / prev.h;
+            let newWNorm = newHNorm * ratio;
+            const maxW = 1 - prev.x;
+            if (newWNorm > maxW) {
+              newWNorm = maxW;
+              next.h = clamp(newWNorm / ratio, 0.01, maxH);
+            }
+            next.w = clamp(newWNorm, 0.01, maxW);
+          }
+          return next;
+        });
+      } else {
+        setResize((prev) => ({
+          ...prev,
+          height: h,
+          width: prev.lockAspect ? Math.max(1, Math.round(h * aspectRatio)) : prev.width,
+        }));
+      }
     },
-    [aspectRatio],
+    [aspectRatio, resizeMode, source, rotation, resize.lockAspect],
   );
 
   const debouncedRender = useDebounced(
-    { source, rotation, flipH, flipV, crop, resize, extend, format, quality, paintVersion },
+    {
+      source,
+      rotation,
+      flipH,
+      flipV,
+      crop,
+      resize: effectiveResize,
+      extend,
+      format,
+      quality,
+      paintVersion,
+    },
     150,
   );
 
@@ -703,7 +815,7 @@ export default function ImageConverter() {
         flipH,
         flipV,
         crop,
-        resize,
+        resize: effectiveResize,
         extend,
       });
       const blob = await encodeOutput(canvas, format, quality);
@@ -720,7 +832,7 @@ export default function ImageConverter() {
     } finally {
       setDownloading(false);
     }
-  }, [source, rotation, flipH, flipV, crop, resize, extend, format, quality]);
+  }, [source, rotation, flipH, flipV, crop, effectiveResize, extend, format, quality]);
 
   const [targetKb, setTargetKb] = useState<string>('');
   const [compressing, setCompressing] = useState(false);
@@ -743,7 +855,7 @@ export default function ImageConverter() {
         flipH,
         flipV,
         crop,
-        resize,
+        resize: effectiveResize,
         extend,
       });
       const fmt = FORMATS.find((f) => f.value === format);
@@ -772,7 +884,7 @@ export default function ImageConverter() {
     } finally {
       setCompressing(false);
     }
-  }, [source, rotation, flipH, flipV, crop, resize, extend, format, targetKb]);
+  }, [source, rotation, flipH, flipV, crop, effectiveResize, extend, format, targetKb]);
 
   const compressionRatio =
     source && previewSize ? Math.round((previewSize / source.size) * 100) : null;
@@ -1157,6 +1269,35 @@ export default function ImageConverter() {
                       Reset
                     </button>
                   </div>
+                  <div className="grid grid-cols-2 gap-1 p-1 border border-white/20 rounded-md bg-white/[0.02] mb-2">
+                    <button
+                      type="button"
+                      onClick={() => setResizeMode('scale')}
+                      className={`px-2 py-1.5 text-[10px] font-sans rounded tracking-wider uppercase transition-colors ${
+                        resizeMode === 'scale'
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/55 hover:text-white/90'
+                      }`}
+                    >
+                      Skalieren
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setResizeMode('crop')}
+                      className={`px-2 py-1.5 text-[10px] font-sans rounded tracking-wider uppercase transition-colors ${
+                        resizeMode === 'crop'
+                          ? 'bg-white/10 text-white'
+                          : 'text-white/55 hover:text-white/90'
+                      }`}
+                    >
+                      Zuschneiden
+                    </button>
+                  </div>
+                  <p className="text-white/45 text-[10px] font-sans mb-2">
+                    {resizeMode === 'scale'
+                      ? 'Skaliert den zugeschnittenen Bereich auf die Zielgröße.'
+                      : 'Schneidet die Originalpixel auf diese Größe zu — kein Skalieren. Auswahl im Quell-Bild mit Shift für Seitenverhältnis.'}
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <label className="text-white/55 text-[10px] font-sans uppercase tracking-wider">
@@ -1165,7 +1306,7 @@ export default function ImageConverter() {
                       <input
                         type="number"
                         min={1}
-                        value={resize.width}
+                        value={displayWidth}
                         onChange={(e) => onWidthChange(parseInt(e.target.value, 10) || 1)}
                         className={inputClass}
                       />
@@ -1177,7 +1318,7 @@ export default function ImageConverter() {
                       <input
                         type="number"
                         min={1}
-                        value={resize.height}
+                        value={displayHeight}
                         onChange={(e) => onHeightChange(parseInt(e.target.value, 10) || 1)}
                         className={inputClass}
                       />
@@ -1192,25 +1333,27 @@ export default function ImageConverter() {
                     />
                     Seitenverhältnis sperren
                   </label>
-                  <div className="flex gap-1.5 mt-2 flex-wrap">
-                    {[0.25, 0.5, 1, 2].map((scale) => (
-                      <button
-                        key={scale}
-                        type="button"
-                        onClick={() => {
-                          if (!baseDims) return;
-                          setResize((p) => ({
-                            ...p,
-                            width: Math.max(1, Math.round(baseDims.width * scale)),
-                            height: Math.max(1, Math.round(baseDims.height * scale)),
-                          }));
-                        }}
-                        className="px-2 py-1 text-xs font-sans rounded border border-white/25 text-white/75 hover:bg-white/[0.04]"
-                      >
-                        {scale}×
-                      </button>
-                    ))}
-                  </div>
+                  {resizeMode === 'scale' && (
+                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                      {[0.25, 0.5, 1, 2].map((scale) => (
+                        <button
+                          key={scale}
+                          type="button"
+                          onClick={() => {
+                            if (!baseDims) return;
+                            setResize((p) => ({
+                              ...p,
+                              width: Math.max(1, Math.round(baseDims.width * scale)),
+                              height: Math.max(1, Math.round(baseDims.height * scale)),
+                            }));
+                          }}
+                          className="px-2 py-1 text-xs font-sans rounded border border-white/25 text-white/75 hover:bg-white/[0.04]"
+                        >
+                          {scale}×
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <details className="group">
