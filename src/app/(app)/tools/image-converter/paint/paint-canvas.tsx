@@ -22,6 +22,40 @@ export interface PaintSelection {
   mask?: Uint8Array;
 }
 
+export interface PendingText {
+  x: number;
+  y: number;
+}
+
+export interface TextDrawOptions {
+  text: string;
+  x: number;
+  y: number;
+  color: string;
+  opacity: number;
+  fontSize: number;
+  fontFamily: string;
+  fontBold: boolean;
+  fontItalic: boolean;
+}
+
+export function drawTextOnContext(ctx: CanvasRenderingContext2D, opts: TextDrawOptions): void {
+  if (!opts.text) return;
+  ctx.save();
+  ctx.globalAlpha = opts.opacity / 100;
+  ctx.fillStyle = opts.color;
+  const weight = opts.fontBold ? '700' : '400';
+  const style = opts.fontItalic ? 'italic' : 'normal';
+  ctx.font = `${style} ${weight} ${opts.fontSize}px ${opts.fontFamily}`;
+  ctx.textBaseline = 'top';
+  const lines = opts.text.split('\n');
+  const lineHeight = opts.fontSize * 1.2;
+  lines.forEach((line, i) => {
+    ctx.fillText(line, opts.x, opts.y + i * lineHeight);
+  });
+  ctx.restore();
+}
+
 interface Point {
   x: number;
   y: number;
@@ -49,6 +83,8 @@ interface PaintCanvasProps {
   fontFamily?: string;
   fontBold?: boolean;
   fontItalic?: boolean;
+  pendingText?: PendingText | null;
+  onPendingTextChange?: (pt: PendingText | null) => void;
 }
 
 function hexToRgb(hex: string): { r: number; g: number; b: number } {
@@ -98,6 +134,8 @@ export function PaintCanvas({
   fontFamily = 'Inter, sans-serif',
   fontBold = false,
   fontItalic = false,
+  pendingText = null,
+  onPendingTextChange,
 }: PaintCanvasProps) {
   const wrapRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
@@ -106,6 +144,8 @@ export function PaintCanvas({
   const snapshotRef = useRef<ImageData | null>(null);
   const strokeBufferRef = useRef<HTMLCanvasElement | null>(null);
   const selOverlayRef = useRef<HTMLCanvasElement | null>(null);
+  const draftCanvasRef = useRef<HTMLCanvasElement | null>(null);
+  const draggingTextRef = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
   useEffect(() => {
     const wrap = wrapRef.current;
@@ -438,24 +478,31 @@ export function PaintCanvas({
       }
 
       if (tool === 'text') {
-        if (!canvas || !text) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        onStrokeStart();
-        ctx.save();
-        ctx.globalAlpha = opacity / 100;
-        ctx.fillStyle = color;
-        const weight = fontBold ? '700' : '400';
-        const style = fontItalic ? 'italic' : 'normal';
-        ctx.font = `${style} ${weight} ${fontSize}px ${fontFamily}`;
-        ctx.textBaseline = 'top';
-        const lines = text.split('\n');
-        const lineHeight = fontSize * 1.2;
-        lines.forEach((line, i) => {
-          ctx.fillText(line, pt.x, pt.y + i * lineHeight);
-        });
-        ctx.restore();
-        onStrokeEnd();
+        if (!canvas) return;
+        if (pendingText && draftCanvasRef.current) {
+          const ctx = draftCanvasRef.current.getContext('2d');
+          if (ctx) {
+            ctx.font = `${fontItalic ? 'italic' : 'normal'} ${fontBold ? '700' : '400'} ${fontSize}px ${fontFamily}`;
+            const lines = text.split('\n');
+            const lineHeight = fontSize * 1.2;
+            const textW = Math.max(...lines.map((l) => ctx.measureText(l).width), 1);
+            const textH = lineHeight * Math.max(lines.length, 1);
+            if (
+              pt.x >= pendingText.x &&
+              pt.x <= pendingText.x + textW &&
+              pt.y >= pendingText.y &&
+              pt.y <= pendingText.y + textH
+            ) {
+              (e.target as Element).setPointerCapture(e.pointerId);
+              draggingTextRef.current = {
+                offsetX: pt.x - pendingText.x,
+                offsetY: pt.y - pendingText.y,
+              };
+              return;
+            }
+          }
+        }
+        onPendingTextChange?.({ x: pt.x, y: pt.y });
         return;
       }
 
@@ -509,6 +556,8 @@ export function PaintCanvas({
       fontBold,
       fontItalic,
       opacity,
+      pendingText,
+      onPendingTextChange,
     ],
   );
 
@@ -516,6 +565,15 @@ export function PaintCanvas({
     (e: React.PointerEvent) => {
       const pt = toCanvasCoords(e);
       if (!pt) return;
+
+      if (tool === 'text' && draggingTextRef.current) {
+        onPendingTextChange?.({
+          x: pt.x - draggingTextRef.current.offsetX,
+          y: pt.y - draggingTextRef.current.offsetY,
+        });
+        return;
+      }
+
       if (!drawingRef.current) return;
 
       if (tool === 'brush' || tool === 'eraser') {
@@ -545,10 +603,14 @@ export function PaintCanvas({
       onSelectionChange,
       toCanvasCoords,
       fillShape,
+      onPendingTextChange,
     ],
   );
 
   const onPointerUp = useCallback(() => {
+    if (draggingTextRef.current) {
+      draggingTextRef.current = null;
+    }
     if (drawingRef.current) {
       drawingRef.current = false;
       lastPtRef.current = null;
@@ -559,6 +621,41 @@ export function PaintCanvas({
   }, [onStrokeEnd]);
 
   const aspectStyle = useMemo(() => ({ aspectRatio: `${imgW} / ${imgH}` }), [imgW, imgH]);
+
+  useEffect(() => {
+    const c = draftCanvasRef.current;
+    if (!c) return;
+    if (c.width !== imgW) c.width = imgW;
+    if (c.height !== imgH) c.height = imgH;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, c.width, c.height);
+    if (pendingText && text && tool === 'text') {
+      drawTextOnContext(ctx, {
+        text,
+        x: pendingText.x,
+        y: pendingText.y,
+        color,
+        opacity,
+        fontSize,
+        fontFamily,
+        fontBold,
+        fontItalic,
+      });
+    }
+  }, [
+    pendingText,
+    text,
+    color,
+    opacity,
+    fontSize,
+    fontFamily,
+    fontBold,
+    fontItalic,
+    tool,
+    imgW,
+    imgH,
+  ]);
 
   useEffect(() => {
     const c = selOverlayRef.current;
@@ -625,6 +722,12 @@ export function PaintCanvas({
           }}
         />
       ) : null}
+      {tool === 'text' && (
+        <canvas
+          ref={draftCanvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+        />
+      )}
     </div>
   );
 }
