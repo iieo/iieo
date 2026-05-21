@@ -13,7 +13,13 @@ import {
   PAINT_OPACITY_PRESETS,
   PAINT_SIZES,
 } from './paint/constants';
-import { PaintCanvas, type PaintSelection, type PaintTool } from './paint/paint-canvas';
+import {
+  PaintCanvas,
+  type PaintSelection,
+  type PaintTool,
+  type PendingText,
+  drawTextOnContext,
+} from './paint/paint-canvas';
 
 const PAINT_TOOL_BUTTONS: ReadonlyArray<{ tool: PaintTool; label: string }> = [
   { tool: 'brush', label: 'Pinsel' },
@@ -474,6 +480,7 @@ export default function ImageConverter() {
   const [paintFontFamily, setPaintFontFamily] = useState<string>('Inter, sans-serif');
   const [paintFontBold, setPaintFontBold] = useState<boolean>(false);
   const [paintFontItalic, setPaintFontItalic] = useState<boolean>(false);
+  const [pendingText, setPendingText] = useState<PendingText | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -531,6 +538,7 @@ export default function ImageConverter() {
       paintCanvasRef.current = pc;
       paintHistoryRef.current = [];
       setPaintCanUndo(false);
+      setPendingText(null);
       setPaintVersion((v) => v + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Bild konnte nicht geladen werden');
@@ -665,6 +673,61 @@ export default function ImageConverter() {
     150,
   );
 
+  const commitPendingText = useCallback(() => {
+    const pc = paintCanvasRef.current;
+    if (!pc || !pendingText || !paintText) {
+      setPendingText(null);
+      return;
+    }
+    const ctx = pc.getContext('2d');
+    if (!ctx) return;
+    try {
+      const snap = ctx.getImageData(0, 0, pc.width, pc.height);
+      const hist = paintHistoryRef.current;
+      hist.push(snap);
+      if (hist.length > MAX_PAINT_HISTORY) hist.shift();
+      setPaintCanUndo(true);
+    } catch {
+      // ignore
+    }
+    drawTextOnContext(ctx, {
+      text: paintText,
+      x: pendingText.x,
+      y: pendingText.y,
+      color: paintColor,
+      opacity: paintOpacity,
+      fontSize: paintFontSize,
+      fontFamily: paintFontFamily,
+      fontBold: paintFontBold,
+      fontItalic: paintFontItalic,
+    });
+    setPendingText(null);
+    setPaintVersion((v) => v + 1);
+  }, [
+    pendingText,
+    paintText,
+    paintColor,
+    paintOpacity,
+    paintFontSize,
+    paintFontFamily,
+    paintFontBold,
+    paintFontItalic,
+  ]);
+
+  const cancelPendingText = useCallback(() => {
+    setPendingText(null);
+  }, []);
+
+  const onPaintToolChange = useCallback(
+    (next: PaintTool) => {
+      if (paintTool === 'text' && next !== 'text' && pendingText) {
+        commitPendingText();
+      }
+      setPaintTool(next);
+    },
+    [paintTool, pendingText, commitPendingText],
+  );
+
   const onPaintStrokeStart = useCallback(() => {
     const pc = paintCanvasRef.current;
     if (!pc) return;
@@ -785,12 +848,22 @@ export default function ImageConverter() {
         setPaintVersion((v) => v + 1);
       }
       if (e.key === 'Escape') {
-        setPaintSelection(null);
+        if (pendingText) {
+          setPendingText(null);
+        } else {
+          setPaintSelection(null);
+        }
+      }
+      if (e.key === 'Enter' && pendingText && paintTool === 'text') {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === 'TEXTAREA' || target.tagName === 'INPUT')) return;
+        e.preventDefault();
+        commitPendingText();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTab, onPaintUndo]);
+  }, [activeTab, onPaintUndo, pendingText, paintTool, commitPendingText]);
 
   useEffect(() => {
     return () => {
@@ -1004,6 +1077,8 @@ export default function ImageConverter() {
                     fontFamily={paintFontFamily}
                     fontBold={paintFontBold}
                     fontItalic={paintFontItalic}
+                    pendingText={pendingText}
+                    onPendingTextChange={setPendingText}
                   />
                 ) : (
                   <CropOverlay
@@ -1080,7 +1155,7 @@ export default function ImageConverter() {
                       <ToggleChip
                         key={tool}
                         active={paintTool === tool}
-                        onClick={() => setPaintTool(tool)}
+                        onClick={() => onPaintToolChange(tool)}
                       >
                         {label}
                       </ToggleChip>
@@ -1157,9 +1232,36 @@ export default function ImageConverter() {
                         I Kursiv
                       </ToggleChip>
                     </div>
-                    <p className="text-white/45 text-[10px] font-sans">
-                      Auf das Bild klicken, um den Text an dieser Position einzufügen.
-                    </p>
+                    {pendingText ? (
+                      <div className="flex flex-col gap-2 p-2 border border-white/25 rounded-md bg-white/[0.03]">
+                        <p className="text-white/65 text-[10px] font-sans">
+                          Text-Vorschau aktiv. Text, Schriftart, Größe, Farbe und Deckkraft können
+                          jetzt angepasst werden. Auf das Bild klicken verschiebt die Position;
+                          Vorschau ziehen zum Feinjustieren.
+                        </p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={commitPendingText}
+                            className={`${buttonClass} border-white bg-white text-black hover:bg-white/90`}
+                          >
+                            Übernehmen
+                          </button>
+                          <button
+                            type="button"
+                            onClick={cancelPendingText}
+                            className={`${buttonClass} border-white/25 text-white/80 hover:bg-white/[0.04]`}
+                          >
+                            Abbrechen
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-white/45 text-[10px] font-sans">
+                        Auf das Bild klicken, um den Text dort als Vorschau zu platzieren. Erst nach
+                        „Übernehmen" wird der Text aufs Bild gezeichnet.
+                      </p>
+                    )}
                   </>
                 )}
                 {(paintTool === 'brush' ||
