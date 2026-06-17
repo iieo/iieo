@@ -1259,7 +1259,7 @@ export default function ImageConverter() {
                     ) : (
                       <p className="text-white/45 text-[10px] font-sans">
                         Auf das Bild klicken, um den Text dort als Vorschau zu platzieren. Erst nach
-                        „Übernehmen" wird der Text aufs Bild gezeichnet.
+                        „Übernehmen&ldquo; wird der Text aufs Bild gezeichnet.
                       </p>
                     )}
                   </>

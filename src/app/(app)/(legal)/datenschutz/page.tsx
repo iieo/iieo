@@ -551,6 +551,85 @@ function PrivacyPolicy() {
         </p>
       </section>
 
+      <section className="mb-10">
+        <h2 className="text-2xl font-bold mb-6 mt-12 text-white">6. Analyse-Tools und Werbung</h2>
+        <h3 className="text-xl font-semibold mb-3 mt-8 text-white/90">Google Analytics</h3>
+        <p className="mb-4 text-white/70">
+          Diese Website nutzt Funktionen des Webanalysedienstes Google Analytics. Anbieter ist die
+          Google Ireland Limited (&bdquo;Google&ldquo;), Gordon House, Barrow Street, Dublin 4,
+          Irland.
+        </p>
+        <p className="mb-4 text-white/70">
+          Google Analytics erm&ouml;glicht es dem Websitebetreiber, das Verhalten der
+          Websitebesucher zu analysieren. Hierbei erh&auml;lt der Websitebetreiber verschiedene
+          Nutzungsdaten, wie z.&nbsp;B. Seitenaufrufe, Verweildauer, verwendete Betriebssysteme und
+          Herkunft des Nutzers. Diese Daten werden Google ggf. in einem Profil zugeordnet, das dem
+          jeweiligen Nutzer bzw. dessen Endger&auml;t zugeordnet ist.
+        </p>
+        <p className="mb-4 text-white/70">
+          Google Analytics verwendet Technologien, die die Wiedererkennung des Nutzers zum Zwecke
+          der Analyse des Nutzerverhaltens erm&ouml;glichen (z.&nbsp;B. Cookies oder
+          Device-Fingerprinting). Die von Google erfassten Informationen &uuml;ber die Benutzung
+          dieser Website werden in der Regel an einen Server von Google in den USA &uuml;bertragen
+          und dort gespeichert.
+        </p>
+        <p className="mb-4 text-white/70">
+          Die Nutzung dieses Dienstes erfolgt auf Grundlage Ihrer Einwilligung nach Art. 6 Abs. 1
+          lit. a DSGVO und &sect; 25 Abs. 1 TDDDG. Die Einwilligung ist jederzeit widerrufbar.
+        </p>
+        <p className="mb-4 text-white/70">
+          Das Unternehmen verf&uuml;gt &uuml;ber eine Zertifizierung nach dem &bdquo;EU-US Data
+          Privacy Framework&ldquo; (DPF). Der DPF ist ein &Uuml;bereinkommen zwischen der
+          Europ&auml;ischen Union und den USA, der die Einhaltung europ&auml;ischer
+          Datenschutzstandards bei Datenverarbeitungen in den USA gew&auml;hrleisten soll. Jedes
+          nach dem DPF zertifizierte Unternehmen verpflichtet sich, diese Datenschutzstandards
+          einzuhalten. Weitere Informationen hierzu erhalten Sie vom Anbieter unter folgendem Link:{' '}
+          <a
+            href="https://www.dataprivacyframework.gov/participant/5780"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
+          >
+            https://www.dataprivacyframework.gov/participant/5780
+          </a>
+          .
+        </p>
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">Browser Plugin</h4>
+        <p className="mb-4 text-white/70">
+          Sie k&ouml;nnen die Erfassung und Verarbeitung Ihrer Daten durch Google verhindern, indem
+          Sie das unter dem folgenden Link verf&uuml;gbare Browser-Plugin herunterladen und
+          installieren:{' '}
+          <a
+            href="https://tools.google.com/dlpage/gaoptout?hl=de"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
+          >
+            https://tools.google.com/dlpage/gaoptout?hl=de
+          </a>
+          .
+        </p>
+        <p className="mb-4 text-white/70">
+          Mehr Informationen zum Umgang mit Nutzerdaten bei Google Analytics finden Sie in der
+          Datenschutzerkl&auml;rung von Google:{' '}
+          <a
+            href="https://support.google.com/analytics/answer/6004245?hl=de"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
+          >
+            https://support.google.com/analytics/answer/6004245?hl=de
+          </a>
+          .
+        </p>
+        <h4 className="font-semibold mb-2 mt-6 text-white/90">Auftragsverarbeitung</h4>
+        <p className="mb-4 text-white/70">
+          Wir haben mit Google einen Vertrag zur Auftragsverarbeitung abgeschlossen und setzen die
+          strengen Vorgaben der deutschen Datenschutzbeh&ouml;rden bei der Nutzung von Google
+          Analytics vollst&auml;ndig um.
+        </p>
+      </section>
+
       <footer className="mt-16 pt-8 border-t border-white/10 text-xs text-white/40">
         Quelle:{' '}
         <a href="https://www.e-recht24.de" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">

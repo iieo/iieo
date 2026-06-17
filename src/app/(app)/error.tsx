@@ -7,6 +7,11 @@ import { Footer } from '@/components/footer';
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
+type ErrorPageProps = {
+  error: Error & { digest?: string };
+  reset: () => void;
+};
+
 export default function ErrorPage({ error, reset }: ErrorPageProps) {
   useEffect(() => {
     console.error(error);

@@ -3,15 +3,17 @@ import React from 'react';
 function Imprint() {
   return (
     <main className="max-w-3xl mx-auto px-6 py-24 font-sans text-white/70 leading-relaxed">
-      <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white font-rubik tracking-tight">Impressum</h1>
+      <h1 className="text-4xl md:text-5xl font-bold mb-12 text-white font-rubik tracking-tight">
+        Impressum
+      </h1>
       <section className="mb-10">
         <p className="mb-4 text-white/70">Angaben gemäß § 5 DDG</p>
         <address className="not-italic text-white/70">
           Leopold Bauer
           <br />
-          Potsdamerstraße 13
+          Goethestraße 25
           <br />
-          80802 München
+          82110 Germering
           <br />
         </address>
       </section>
@@ -26,12 +28,18 @@ function Imprint() {
         <strong className="font-semibold text-white">Kontakt:</strong>
         <br />
         Telefon:{' '}
-        <a href="tel:+4917684994760" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
-          +49-17681701855
+        <a
+          href="tel:+4917684994760"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
+        >
+          +49-17684994760
         </a>
         <br />
         E-Mail:{' '}
-        <a href="mailto:leopoldbauer@duck.com" className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4">
+        <a
+          href="mailto:leopoldbauer@duck.com"
+          className="text-white hover:text-white/70 transition-colors underline decoration-white/30 underline-offset-4"
+        >
           leopoldbauer@duck.com
         </a>
       </section>

@@ -5,6 +5,7 @@ import { ColorPicker } from '@/components/ui/color-picker';
 import { Panel } from '@/components/ui/panel';
 import { ToggleChip } from '@/components/ui/toggle-chip';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type QRCodeStyling from 'qr-code-styling';
 
 import {
   buildQrString,
@@ -84,8 +85,7 @@ export default function QrGenerator() {
   const [toast, setToast] = useState<string | null>(null);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const qrInstanceRef = useRef<any>(null);
+  const qrInstanceRef = useRef<QRCodeStyling | null>(null);
   const appendedContainerRef = useRef<HTMLDivElement | null>(null);
   const [downloadFormat, setDownloadFormat] = useState<ExportFormat>('png');
 
@@ -201,7 +201,12 @@ export default function QrGenerator() {
 
   const handleCopyDataUrl = useCallback(async () => {
     if (!qrInstanceRef.current) return;
-    const blob: Blob = await qrInstanceRef.current.getRawData('png');
+    const rawData = await qrInstanceRef.current.getRawData('png');
+    if (!(rawData instanceof Blob)) {
+      showToast('Kopieren fehlgeschlagen.');
+      return;
+    }
+    const blob = rawData;
     const reader = new FileReader();
     reader.onload = async () => {
       try {
