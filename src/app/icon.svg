@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#131316"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect x="3" y="3" width="506" height="506" rx="113" fill="none" stroke="rgba(255,255,255,0.14)" stroke-width="6"/>
+
+  <!-- Monogram "LB" -->
+  <g fill="#ffffff">
+    <!-- Letter L: Stem w=60, Base w=134, h=60 -->
+    <path d="
+      M 103 128 
+      L 143 128 
+      A 10 10 0 0 1 153 138 
+      L 153 314 
+      A 10 10 0 0 0 163 324 
+      L 217 324 
+      A 10 10 0 0 1 227 334 
+      L 227 374 
+      A 10 10 0 0 1 217 384 
+      L 103 384 
+      A 10 10 0 0 1 93 374 
+      L 93 138 
+      A 10 10 0 0 1 103 128 
+      Z
+    "/>
+
+    <!-- Letter B: Spine w=60, matching stroke widths -->
+    <path fill-rule="evenodd" d="
+      M 265 128 
+      L 341 128 
+      C 385 128 411 154 411 194 
+      C 411 220 397 240 373 248 
+      C 403 256 419 278 419 314 
+      C 419 356 385 384 341 384 
+      L 265 384 
+      A 10 10 0 0 1 255 374 
+      L 255 138 
+      A 10 10 0 0 1 265 128 
+      Z
+      M 315 180 
+      L 315 226 
+      L 339 226 
+      C 355 226 365 216 365 203 
+      C 365 190 355 180 339 180 
+      Z
+      M 315 286 
+      L 315 332 
+      L 341 332 
+      C 359 332 369 322 369 309 
+      C 369 296 359 286 341 286 
+      Z
+    "/>
+  </g>
+</svg>

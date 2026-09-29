@@ -16,6 +16,9 @@ uniform vec2 uRes;
 uniform float uTime;
 uniform vec2 uMouse;
 uniform float uDim;
+uniform float uScroll;
+uniform vec2 uSeed;
+uniform vec2 uFlow;
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -53,15 +56,25 @@ float fbm(vec2 p) {
 }
 
 // Volumetric-looking fog: stretched, domain-warped perlin, dense low and thin high
-float fogDensity(vec2 p, float y, float base, float d, float t) {
-  vec2 fp = vec2(p.x * 0.8 - t * 0.05 * (1.0 + d) + d * 9.0, y * 3.4 - d * 2.0);
+float fogDensity(vec2 p, vec2 sp, float y, float base, float d, float t) {
+  vec2 mp = vec2(uMouse.x * (uRes.x / uRes.y), 1.0 - uMouse.y);
+  vec2 rel = sp - mp;
+  float near = exp(-dot(rel, rel) / 0.05);
+
+  // Steady drift in one direction, random start per visit so it is never the same
+  vec2 fp = vec2(p.x * 0.8 - t * 0.05 * (1.0 + d) + d * 9.0, y * 3.4 - d * 2.0) + uSeed;
+
+  // The cursor only nudges the fog slightly
+  fp += vec2(-uFlow.x * 0.35, uFlow.y * 0.7) + rel * near * vec2(0.2, 0.5);
+
   vec2 warp = vec2(fbm(fp + t * 0.05), fbm(fp + 5.2 - t * 0.04));
   float n = fbm(fp + warp * 1.4);
   float wisps = fbm(fp * vec2(2.2, 4.0) + warp * 2.0 - t * 0.03);
   n = mix(n, wisps, 0.35);
   float body = smoothstep(0.28, 0.72, n);
   float height = exp(-max(y - base, 0.0) * 5.0) * smoothstep(base - 0.5, base, y + 0.35);
-  return clamp(body * height * 1.5, 0.0, 1.0);
+  float parted = 1.0 - 0.2 * near;
+  return clamp(body * height * 1.5 * parted, 0.0, 1.0);
 }
 
 void main() {
@@ -72,7 +85,7 @@ void main() {
   vec2 m = uMouse - 0.5;
 
   // Soft sky glow, low on the right
-  vec2 glowPos = vec2(asp * 0.72 + sin(t * 0.15) * 0.05, 0.62 + sin(t * 0.11) * 0.03);
+  vec2 glowPos = vec2(asp * 0.72 + sin(t * 0.15) * 0.05 - uScroll * 0.06, 0.62 + sin(t * 0.11) * 0.03 + uScroll * 0.05);
   float pulse = 1.0 + 0.12 * sin(t * 0.5);
   float col = 0.04 + 0.46 * pulse * exp(-length((p - glowPos) * vec2(0.8, 1.4)) * 2.6);
 
@@ -84,7 +97,7 @@ void main() {
 
   for (int i = 0; i < 4; i++) {
     float d = float(i) / 3.0;
-    vec2 q = vec2(p.x + m.x * (0.01 + 0.04 * d) + t * 0.004 * (1.0 + d), p.y);
+    vec2 q = vec2(p.x + m.x * (0.01 + 0.04 * d) + t * 0.004 * (1.0 + d) + uScroll * (0.05 + 0.25 * d), p.y);
 
     // Ridge line: one smooth perlin curve per layer
     float h = 0.56 - d * 0.26;
@@ -95,18 +108,20 @@ void main() {
       h += 0.13 * exp(-pow((q.x - wx) / 0.12, 2.0));
     }
 
+    h -= uScroll * 0.03 * (0.4 + d);
+
     float edge = 1.5 / uRes.y;
     col = mix(col, mix(0.3, 0.0, d), smoothstep(h + edge, h - edge, uv.y));
 
     // Fog pools at the foot of each ridge and catches the light from the glow
-    float fog = fogDensity(p, uv.y, h - 0.04, d, t);
+    float fog = fogDensity(vec2(p.x + uScroll * 0.5 * (1.0 + d), p.y), p, uv.y, h - 0.04, d, t);
     float lit = exp(-length((p - glowPos) * vec2(0.8, 1.4)) * 1.8);
     float fogCol = mix(0.46, 0.3, d) + 0.34 * lit;
     col = mix(col, fogCol, fog * (0.92 - d * 0.12));
   }
 
   // A thin veil of fog in front of the foreground crag
-  float veil = fogDensity(p + vec2(3.7, 0.0), uv.y, 0.12, 1.3, t);
+  float veil = fogDensity(p + vec2(3.7 + uScroll * 1.1, 0.0), p, uv.y, 0.12, 1.3, t);
   col = mix(col, 0.34 + 0.2 * exp(-length((p - glowPos) * vec2(0.8, 1.4)) * 1.8), veil * 0.5);
 
   // Slow perlin flow across the whole frame, so the noise reads everywhere
@@ -151,6 +166,9 @@ export default function AnimationViewer() {
       uTime: { value: 0 },
       uMouse: { value: new THREE.Vector2(0.5, 0.5) },
       uDim: { value: 0 },
+      uScroll: { value: 0 },
+      uSeed: { value: new THREE.Vector2(Math.random() * 200, Math.random() * 200) },
+      uFlow: { value: new THREE.Vector2(0, 0) },
     };
     const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms });
     const geometry = new THREE.PlaneGeometry(2, 2);
@@ -167,15 +185,24 @@ export default function AnimationViewer() {
     window.addEventListener('resize', resize);
 
     const target = new THREE.Vector2(0.5, 0.5);
+    const flowTarget = new THREE.Vector2(0, 0);
+    const last = new THREE.Vector2(NaN, NaN);
     const onMove = (e: PointerEvent) => {
       target.set(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
+      if (!Number.isNaN(last.x)) {
+        flowTarget.x += ((e.clientX - last.x) / window.innerWidth) * 3;
+        flowTarget.y += ((e.clientY - last.y) / window.innerHeight) * 3;
+      }
+      last.set(e.clientX, e.clientY);
     };
     window.addEventListener('pointermove', onMove);
 
     const main = document.querySelector('main');
+    let scrollTarget = 0;
     const onScroll = () => {
       if (!main) return;
       uniforms.uDim.value = Math.min(1, main.scrollTop / (window.innerHeight * 0.6));
+      scrollTarget = main.scrollTop / window.innerHeight;
     };
     main?.addEventListener('scroll', onScroll, { passive: true });
 
@@ -184,8 +211,10 @@ export default function AnimationViewer() {
     const tick = () => {
       if (!reduceMotion) {
         uniforms.uTime.value = clock.getElapsedTime();
-        uniforms.uMouse.value.lerp(target, 0.04);
+        uniforms.uMouse.value.lerp(target, 0.08);
+        uniforms.uFlow.value.lerp(flowTarget, 0.05);
       }
+      uniforms.uScroll.value += (scrollTarget - uniforms.uScroll.value) * 0.06;
       renderer.render(scene, camera);
       frame = requestAnimationFrame(tick);
     };

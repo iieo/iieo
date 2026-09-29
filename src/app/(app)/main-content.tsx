@@ -17,9 +17,9 @@ function LetterPull({ text, delay = 0 }: { text: string; delay?: number }) {
       {text.split('').map((char, i) => (
         <motion.span
           key={i}
-          initial={{ y: '100%', opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: delay + i * 0.04, ease }}
+          initial={{ y: '100%', opacity: 0, filter: 'blur(14px)' }}
+          animate={{ y: 0, opacity: 1, filter: 'blur(0px)' }}
+          transition={{ duration: 1.1, delay: delay + i * 0.06, ease }}
         >
           {char}
         </motion.span>
@@ -77,18 +77,18 @@ function ProjectCard({
     >
       <Link href={href} target="_blank" rel="noopener noreferrer" className="block group h-full">
         <motion.div
-          className="border border-white/[0.08] rounded-2xl p-6 md:p-8 bg-white/[0.01] backdrop-blur-sm h-full"
+          className="border border-white/[0.1] rounded-3xl p-6 md:p-8 bg-gradient-to-b from-white/[0.07] to-white/[0.015] backdrop-blur-xl h-full shadow-[0_10px_60px_rgba(255,255,255,0.02)]"
           whileHover={{
-            borderColor: 'rgba(255,255,255,0.2)',
-            backgroundColor: 'rgba(255,255,255,0.03)',
-            y: -4,
+            borderColor: 'rgba(255,255,255,0.28)',
+            boxShadow: '0 14px 80px rgba(255,255,255,0.09)',
+            y: -6,
           }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          transition={{ duration: 0.5, ease: 'easeOut' }}
         >
           <div className="flex items-start justify-between gap-4">
             <div>
               <h3 className="text-white text-xl md:text-2xl mb-2">{title}</h3>
-              <p className="text-white/40 font-sans text-sm md:text-base leading-relaxed">
+              <p className="text-white/50 font-sans text-sm md:text-base leading-relaxed">
                 {description}
               </p>
             </div>
@@ -130,7 +130,7 @@ function NavDots({ active, onNavigate }: { active: number; onNavigate: (index: n
             )}
           </AnimatePresence>
           <motion.div
-            className="w-2 h-2 rounded-full border border-white/30"
+            className="w-2 h-2 rounded-full border border-white/30 shadow-[0_0_12px_rgba(255,255,255,0.25)]"
             animate={{
               backgroundColor: active === i ? 'rgba(255,255,255,0.8)' : 'rgba(255,255,255,0)',
               scale: active === i ? 1.3 : 1,
@@ -192,10 +192,10 @@ function MainContent() {
         ref={setSectionRef(0)}
         className="min-h-dvh md:snap-start md:snap-always flex flex-col justify-center px-6 sm:px-8 md:px-16 lg:px-24 relative py-20 md:py-0"
       >
-        <h1 className="text-white text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
+        <h1 className="text-white text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] drop-shadow-[0_0_48px_rgba(255,255,255,0.18)]">
           <LetterPull text={FIRST_NAME} delay={0.3} />
         </h1>
-        <h1 className="text-white text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95]">
+        <h1 className="text-white/70 text-6xl sm:text-7xl md:text-8xl lg:text-9xl leading-[0.95] drop-shadow-[0_0_48px_rgba(255,255,255,0.12)]">
           <LetterPull text={LAST_NAME} delay={0.6} />
         </h1>
         <motion.p
@@ -370,9 +370,9 @@ function MainContent() {
         <SectionReveal delay={0.1}>
           <motion.a
             href="mailto:leopoldbauer@duck.com"
-            className="text-white text-xl sm:text-2xl md:text-4xl lg:text-5xl font-rubik inline-block break-all"
-            whileHover={{ opacity: 0.6, x: 4 }}
-            transition={{ duration: 0.3 }}
+            className="text-white text-xl sm:text-2xl md:text-4xl lg:text-5xl font-rubik inline-block break-all border-b border-white/20 pb-3 drop-shadow-[0_0_40px_rgba(255,255,255,0.15)]"
+            whileHover={{ opacity: 0.7, x: 4, borderColor: 'rgba(255,255,255,0.5)' }}
+            transition={{ duration: 0.5 }}
           >
             leopoldbauer@duck.com
           </motion.a>

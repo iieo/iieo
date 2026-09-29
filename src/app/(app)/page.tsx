@@ -5,7 +5,7 @@ import { Footer } from '@/components/footer';
 export default function Page() {
   return (
     <div className="relative h-dvh overflow-hidden">
-      <main className="h-full overflow-y-auto overflow-x-hidden md:snap-y md:snap-proximity">
+      <main className="h-full overflow-y-auto overflow-x-hidden md:snap-y md:snap-mandatory">
         <AnimationViewer />
         <MainContent />
         <div className="md:snap-start">
