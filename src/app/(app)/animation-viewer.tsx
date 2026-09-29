@@ -18,7 +18,7 @@ uniform vec2 uMouse;
 uniform float uDim;
 uniform float uScroll;
 uniform vec2 uSeed;
-uniform vec2 uFlow;
+uniform vec2 uVel;
 
 float hash(vec2 p) {
   p = fract(p * vec2(123.34, 456.21));
@@ -55,26 +55,69 @@ float fbm(vec2 p) {
   return v;
 }
 
-// Volumetric-looking fog: stretched, domain-warped perlin, dense low and thin high
+// Flow noise (Perlin & Neyret): the lattice gradients rotate over time, so the pattern
+// evolves in place instead of repeating, while advection gives it a clear direction
+float flowNoise(vec2 p, float t) {
+  vec2 i = floor(p);
+  vec2 f = fract(p);
+  vec2 u = f * f * f * (f * (f * 6.0 - 15.0) + 10.0);
+  vec2 g00 = vec2(0.0), g10 = vec2(1.0, 0.0), g01 = vec2(0.0, 1.0), g11 = vec2(1.0);
+  float h00 = hash(i), h10 = hash(i + g10), h01 = hash(i + g01), h11 = hash(i + g11);
+  float a = dot(vec2(cos(h00 * 6.2831853 + t * (h00 - 0.5)), sin(h00 * 6.2831853 + t * (h00 - 0.5))), f);
+  float b = dot(vec2(cos(h10 * 6.2831853 + t * (h10 - 0.5)), sin(h10 * 6.2831853 + t * (h10 - 0.5))), f - g10);
+  float c = dot(vec2(cos(h01 * 6.2831853 + t * (h01 - 0.5)), sin(h01 * 6.2831853 + t * (h01 - 0.5))), f - g01);
+  float e = dot(vec2(cos(h11 * 6.2831853 + t * (h11 - 0.5)), sin(h11 * 6.2831853 + t * (h11 - 0.5))), f - g11);
+  return mix(mix(a, b, u.x), mix(c, e, u.x), u.y) * 0.5 + 0.5;
+}
+
+float flowFbm(vec2 p, float t) {
+  float v = 0.0;
+  float a = 0.5;
+  mat2 r = mat2(0.8, -0.6, 0.6, 0.8);
+  for (int i = 0; i < 5; i++) {
+    v += a * flowNoise(p, t);
+    p = r * p * 2.03 + 17.0;
+    t *= 1.5;
+    a *= 0.5;
+  }
+  return v;
+}
+
+const vec2 FOG_DIR = vec2(1.0, -0.06);
+
+// Volumetric-looking fog: stretched, domain-warped flow noise, dense low and thin high
 float fogDensity(vec2 p, vec2 sp, float y, float base, float d, float t) {
+  vec2 fp = vec2(p.x * 0.8 + d * 9.0, y * 3.4 - d * 2.0) + uSeed;
+
+  // The cursor stirs a small swirl only where it is, the rest keeps flowing
   vec2 mp = vec2(uMouse.x * (uRes.x / uRes.y), 1.0 - uMouse.y);
   vec2 rel = sp - mp;
-  float near = exp(-dot(rel, rel) / 0.05);
+  float near = exp(-dot(rel, rel) / 0.02);
+  fp += near * (vec2(-rel.y, rel.x) * 0.25 - uVel * vec2(0.15, -0.35));
 
-  // Steady drift in one direction, random start per visit so it is never the same
-  vec2 fp = vec2(p.x * 0.8 - t * 0.05 * (1.0 + d) + d * 9.0, y * 3.4 - d * 2.0) + uSeed;
+  // Everything, the warp included, is advected along one direction
+  fp -= FOG_DIR * t * 0.06 * (1.0 + d);
+  float evo = t * 0.25;
 
-  // The cursor only nudges the fog slightly
-  fp += vec2(-uFlow.x * 0.35, uFlow.y * 0.7) + rel * near * vec2(0.2, 0.5);
-
-  vec2 warp = vec2(fbm(fp + t * 0.05), fbm(fp + 5.2 - t * 0.04));
-  float n = fbm(fp + warp * 1.4);
-  float wisps = fbm(fp * vec2(2.2, 4.0) + warp * 2.0 - t * 0.03);
+  vec2 warp = vec2(flowFbm(fp * 0.7, evo), flowFbm(fp * 0.7 + 5.2, evo + 3.0));
+  float n = flowFbm(fp + warp * 1.3, evo * 1.3);
+  float wisps = flowFbm(fp * vec2(2.2, 4.0) + warp * 2.0, evo * 1.8);
   n = mix(n, wisps, 0.35);
   float body = smoothstep(0.28, 0.72, n);
   float height = exp(-max(y - base, 0.0) * 5.0) * smoothstep(base - 0.5, base, y + 0.35);
-  float parted = 1.0 - 0.2 * near;
-  return clamp(body * height * 1.5 * parted, 0.0, 1.0);
+  return clamp(body * height * 1.5 * (1.0 - 0.05 * near), 0.0, 1.0);
+}
+
+// Sun shafts fanning out from the glow, broken up by slowly drifting perlin
+float sunRays(vec2 p, vec2 src, float t) {
+  vec2 rd = p - src;
+  float r = length(rd);
+  vec2 dir = rd / max(r, 1e-4);
+  float s = perlin(dir * 5.0 + vec2(t * 0.04, -t * 0.03) + uSeed * 0.01);
+  s = 0.6 * s + 0.4 * perlin(dir * 13.0 + vec2(-t * 0.06, t * 0.05));
+  float shafts = smoothstep(0.5, 0.78, s);
+  float downward = smoothstep(0.35, -0.7, dir.y);
+  return shafts * downward * exp(-r * 1.3) * smoothstep(0.02, 0.18, r);
 }
 
 void main() {
@@ -94,6 +137,7 @@ void main() {
   col += 0.1 * smoothstep(0.4, 0.8, cloud) * smoothstep(0.45, 0.9, uv.y);
 
   float wx = asp * 0.72;
+  float fogSum = 0.0;
 
   for (int i = 0; i < 4; i++) {
     float d = float(i) / 3.0;
@@ -118,11 +162,16 @@ void main() {
     float lit = exp(-length((p - glowPos) * vec2(0.8, 1.4)) * 1.8);
     float fogCol = mix(0.46, 0.3, d) + 0.34 * lit;
     col = mix(col, fogCol, fog * (0.92 - d * 0.12));
+    fogSum = max(fogSum, fog);
   }
 
   // A thin veil of fog in front of the foreground crag
   float veil = fogDensity(p + vec2(3.7 + uScroll * 1.1, 0.0), p, uv.y, 0.12, 1.3, t);
   col = mix(col, 0.34 + 0.2 * exp(-length((p - glowPos) * vec2(0.8, 1.4)) * 1.8), veil * 0.5);
+  fogSum = max(fogSum, veil);
+
+  // Light only becomes visible where it scatters, so the shafts glow brightest inside the fog
+  col += 0.12 * sunRays(p, glowPos, t) * (0.25 + 0.9 * fogSum);
 
   // Slow perlin flow across the whole frame, so the noise reads everywhere
   vec2 flow = vec2(fbm(p * 1.3 + t * 0.04), fbm(p * 1.3 - t * 0.035 + 8.0));
@@ -168,7 +217,7 @@ export default function AnimationViewer() {
       uDim: { value: 0 },
       uScroll: { value: 0 },
       uSeed: { value: new THREE.Vector2(Math.random() * 200, Math.random() * 200) },
-      uFlow: { value: new THREE.Vector2(0, 0) },
+      uVel: { value: new THREE.Vector2(0, 0) },
     };
     const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader, uniforms });
     const geometry = new THREE.PlaneGeometry(2, 2);
@@ -185,13 +234,14 @@ export default function AnimationViewer() {
     window.addEventListener('resize', resize);
 
     const target = new THREE.Vector2(0.5, 0.5);
-    const flowTarget = new THREE.Vector2(0, 0);
+    const velTarget = new THREE.Vector2(0, 0);
     const last = new THREE.Vector2(NaN, NaN);
     const onMove = (e: PointerEvent) => {
       target.set(e.clientX / window.innerWidth, e.clientY / window.innerHeight);
       if (!Number.isNaN(last.x)) {
-        flowTarget.x += ((e.clientX - last.x) / window.innerWidth) * 3;
-        flowTarget.y += ((e.clientY - last.y) / window.innerHeight) * 3;
+        velTarget.x += ((e.clientX - last.x) / window.innerWidth) * 4;
+        velTarget.y += ((e.clientY - last.y) / window.innerHeight) * 4;
+        velTarget.clampLength(0, 0.4);
       }
       last.set(e.clientX, e.clientY);
     };
@@ -212,7 +262,8 @@ export default function AnimationViewer() {
       if (!reduceMotion) {
         uniforms.uTime.value = clock.getElapsedTime();
         uniforms.uMouse.value.lerp(target, 0.08);
-        uniforms.uFlow.value.lerp(flowTarget, 0.05);
+        velTarget.multiplyScalar(0.94);
+        uniforms.uVel.value.lerp(velTarget, 0.1);
       }
       uniforms.uScroll.value += (scrollTarget - uniforms.uScroll.value) * 0.06;
       renderer.render(scene, camera);
